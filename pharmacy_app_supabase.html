@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PharmaDB — Pharmacy Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #f4f3ef;
+    --surface:   #ffffff;
+    --border:    #e2e0d8;
+    --dark:      #1c1c1e;
+    --accent:    #2563eb;
+    --accent-lt: #dbeafe;
+    --green:     #16a34a;
+    --green-lt:  #dcfce7;
+    --red:       #dc2626;
+    --red-lt:    #fee2e2;
+    --orange:    #ea580c;
+    --orange-lt: #ffedd5;
+    --muted:     #6b7280;
+    --sidebar-w: 230px;
+    --radius:    8px;
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--sans); background: var(--bg); color: var(--dark); font-size: 14px; }
+
+  /* ── SIDEBAR ── */
+  #sidebar {
+    position: fixed; top: 0; left: 0; width: var(--sidebar-w);
+    height: 100vh; background: var(--dark); color: #fff;
+    padding: 0; overflow-y: auto; z-index: 100;
+    display: flex; flex-direction: column;
+  }
+  .sb-logo {
+    padding: 22px 20px 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .sb-logo span { font-family: var(--mono); font-size: 17px; font-weight: 500; letter-spacing: -0.5px; }
+  .sb-logo small { display: block; font-size: 10px; color: rgba(255,255,255,0.3); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 2px; }
+  .sb-section { padding: 14px 20px 4px; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.3); }
+  .sb-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px; cursor: pointer; font-size: 13.5px;
+    color: rgba(255,255,255,0.6); border-left: 3px solid transparent;
+    transition: all 0.15s;
+  }
+  .sb-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+  .sb-item.active { background: rgba(37,99,235,0.15); border-left-color: var(--accent); color: #fff; }
+  .sb-item .icon { font-size: 16px; width: 20px; text-align: center; }
+
+  /* ── MAIN ── */
+  #main { margin-left: var(--sidebar-w); padding: 32px 36px; min-height: 100vh; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── PAGE HEADER ── */
+  .page-hdr { margin-bottom: 28px; }
+  .page-hdr h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.5px; }
+  .page-hdr p  { color: var(--muted); font-size: 13.5px; margin-top: 3px; }
+
+  /* ── STATS ── */
+  .stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; margin-bottom: 30px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
+  .stat-card .num { font-size: 30px; font-weight: 600; letter-spacing: -1px; font-family: var(--mono); }
+  .stat-card .lbl { font-size: 12px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* ── TABS ── */
+  .tabs { display: flex; gap: 6px; margin-bottom: 22px; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+  .tab {
+    padding: 8px 16px; cursor: pointer; font-size: 13.5px; font-weight: 500;
+    color: var(--muted); border-bottom: 2px solid transparent;
+    margin-bottom: -1px; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--dark); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ── TABLE ── */
+  .tbl-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 24px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th { background: var(--dark); color: rgba(255,255,255,0.85); text-align: left; padding: 11px 14px; font-size: 11.5px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafaf8; }
+  .low-stock td { background: #fffbeb !important; }
+
+  /* ── BADGE ── */
+  .badge { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 20px; font-size: 11.5px; font-weight: 500; font-family: var(--mono); }
+  .badge-green  { background: var(--green-lt);  color: var(--green); }
+  .badge-blue   { background: var(--accent-lt); color: var(--accent); }
+  .badge-red    { background: var(--red-lt);    color: var(--red); }
+  .badge-orange { background: var(--orange-lt); color: var(--orange); }
+  .badge-gray   { background: #f3f4f6; color: #374151; }
+
+  /* ── FORM ── */
+  .form-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 24px; }
+  .form-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-bottom: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group label { font-size: 12px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .form-group input, .form-group select {
+    border: 1px solid var(--border); border-radius: 6px; padding: 8px 11px;
+    font-size: 13.5px; font-family: var(--sans); background: var(--bg);
+    transition: border-color 0.15s;
+  }
+  .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--accent); background: #fff; }
+
+  /* ── BUTTONS ── */
+  .btn { padding: 9px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 13.5px; font-family: var(--sans); font-weight: 500; transition: all 0.15s; }
+  .btn-primary { background: var(--dark); color: #fff; }
+  .btn-primary:hover { background: #333; }
+  .btn-accent { background: var(--accent); color: #fff; }
+  .btn-accent:hover { background: #1d4ed8; }
+  .btn-success { background: var(--green); color: #fff; }
+  .btn-success:hover { background: #15803d; }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+
+  /* ── ALERTS ── */
+  .alert { padding: 12px 16px; border-radius: var(--radius); margin-bottom: 16px; font-size: 13.5px; }
+  .alert-success { background: var(--green-lt); color: var(--green); border: 1px solid #bbf7d0; }
+  .alert-error   { background: var(--red-lt);   color: var(--red);   border: 1px solid #fecaca; }
+  .alert-warning { background: var(--orange-lt);color: var(--orange);border: 1px solid #fed7aa; }
+  .alert-info    { background: var(--accent-lt);color: var(--accent);border: 1px solid #bfdbfe; }
+
+  /* ── MISC ── */
+  .loading { color: var(--muted); font-style: italic; padding: 24px 14px; font-size: 13px; }
+  .section-title { font-size: 15px; font-weight: 600; margin: 20px 0 12px; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+  code { background: #f0f4f8; padding: 2px 7px; border-radius: 4px; font-family: var(--mono); font-size: 12.5px; }
+  .ra-box {
+    background: var(--dark); color: #93c5fd;
+    padding: 14px 18px; border-radius: var(--radius);
+    font-family: var(--mono); font-size: 13px;
+    margin-bottom: 12px; line-height: 1.7;
+  }
+  .cfg-box {
+    background: #fff; border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px 24px;
+    margin-bottom: 24px;
+  }
+  .cfg-box h3 { font-size: 15px; font-weight: 600; margin-bottom: 10px; }
+  .cfg-box input {
+    width: 100%; border: 1px solid var(--border); border-radius: 6px;
+    padding: 8px 11px; font-size: 13px; font-family: var(--mono);
+    background: var(--bg); margin-bottom: 10px;
+  }
+  .cfg-box input:focus { outline: none; border-color: var(--accent); background: #fff; }
+  .cfg-badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-family:var(--mono); font-weight:600; }
+  .cfg-connected { background:var(--green-lt); color:var(--green); }
+  .cfg-disconnected { background:var(--red-lt); color:var(--red); }
+</style>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ══════════════════════════════════════════════ -->
+<div id="sidebar">
+  <div class="sb-logo">
+    <span>PharmaDB</span>
+    <small>Supabase Edition</small>
+  </div>
+  <div class="sb-section">Actors</div>
+  <div class="sb-item active" onclick="nav('doctor')"><span class="icon">🩺</span> Doctor</div>
+  <div class="sb-item" onclick="nav('pharmacist')"><span class="icon">💊</span> Pharmacist</div>
+  <div class="sb-item" onclick="nav('customer')"><span class="icon">👤</span> Customer</div>
+  <div class="sb-item" onclick="nav('admin')"><span class="icon">🏥</span> Admin</div>
+  <div class="sb-section">System</div>
+  <div class="sb-item" onclick="nav('inventory')"><span class="icon">📦</span> Inventory</div>
+  <div class="sb-item" onclick="nav('billing')"><span class="icon">🧾</span> Billing</div>
+  <div class="sb-item" onclick="nav('timedep')"><span class="icon">🕓</span> Time Dependency</div>
+  <div class="sb-item" onclick="nav('queries')"><span class="icon">∑</span> Rel. Algebra</div>
+  <div class="sb-section">Config</div>
+  <div class="sb-item" onclick="nav('config')"><span class="icon">⚙️</span> Supabase Config</div>
+</div>
+
+<div id="main">
+
+  <!-- ══ CONFIG ═══════════════════════════════════════════════ -->
+  <div id="view-config" class="view">
+    <div class="page-hdr">
+      <h1>⚙️ Supabase Configuration</h1>
+      <p>Connect this app to your Supabase project — one-time setup</p>
+    </div>
+    <div class="cfg-box">
+      <h3>Step 1 — Enter your Supabase credentials</h3>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:14px">
+        Go to <strong>supabase.com → your project → Settings → API</strong> and copy these two values.
+      </p>
+      <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Project URL</label>
+      <input type="text" id="cfg-url" placeholder="https://xxxxxxxxxxxx.supabase.co" />
+      <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Anon Public Key</label>
+      <input type="text" id="cfg-key" placeholder="eyJhbGciOiJIUzI1NiIs..." />
+      <div style="display:flex;gap:10px;align-items:center;margin-top:4px">
+        <button class="btn btn-accent" onclick="saveConfig()">💾 Save & Connect</button>
+        <span id="cfg-status" class="cfg-badge cfg-disconnected">Not connected</span>
+      </div>
+    </div>
+    <div class="cfg-box">
+      <h3>Step 2 — Run the SQL in Supabase</h3>
+      <p style="color:var(--muted);font-size:13px;line-height:1.7">
+        Open <strong>Supabase → SQL Editor → New Query</strong> and paste the entire contents of
+        <code>pharmacy_supabase.sql</code> then click <strong>Run</strong>. That creates all 14 tables and inserts all data.
+      </p>
+    </div>
+    <div class="cfg-box">
+      <h3>Step 3 — You're done!</h3>
+      <p style="color:var(--muted);font-size:13px;line-height:1.7">
+        After saving credentials and running the SQL, navigate to any section. Everything talks directly to Supabase — no server needed.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══ DOCTOR ══════════════════════════════════════════════ -->
+  <div id="view-doctor" class="view active">
+    <div class="page-hdr">
+      <h1>🩺 Doctor Panel</h1>
+      <p>Issue prescriptions for patients</p>
+    </div>
+    <div class="stats" id="doc-stats"><div class="loading">Loading stats...</div></div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab(this,'d-list')">All Prescriptions</div>
+      <div class="tab" onclick="switchTab(this,'d-new')">Issue New Prescription</div>
+    </div>
+
+    <div id="d-list" class="tab-content active">
+      <div class="tbl-wrap">
+        <table><thead><tr><th>Rx#</th><th>Doctor</th><th>Customer</th><th>Medicine(s)</th><th>Date</th><th>Status</th></tr></thead>
+        <tbody id="d-rx-tbody"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <div id="d-new" class="tab-content">
+      <div class="form-card">
+        <div id="d-alert"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Doctor</label><select id="f-doctor"></select></div>
+          <div class="form-group"><label>Customer</label><select id="f-customer"></select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Medicine</label><select id="f-medicine"></select></div>
+          <div class="form-group"><label>Quantity</label><input type="number" id="f-qty" value="1" min="1" max="10"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Dosage Instructions</label><input type="text" id="f-dosage" placeholder="e.g. 1 tablet twice daily after meals"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Prescribed Date</label><input type="date" id="f-date"></div>
+          <div class="form-group"><label>Expiry Date</label><input type="date" id="f-expiry"></div>
+        </div>
+        <button class="btn btn-primary" onclick="issuePrescription()">Issue Prescription → Supabase</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PHARMACIST ══════════════════════════════════════════ -->
+  <div id="view-pharmacist" class="view">
+    <div class="page-hdr">
+      <h1>💊 Pharmacist Panel</h1>
+      <p>Dispense pending prescriptions</p>
+    </div>
+    <div class="stats" id="ph-stats"><div class="loading">Loading...</div></div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab(this,'ph-queue')">Dispense Queue</div>
+      <div class="tab" onclick="switchTab(this,'ph-meds')">Medicine List</div>
+    </div>
+
+    <div id="ph-queue" class="tab-content active">
+      <div id="ph-alert"></div>
+      <div class="tbl-wrap">
+        <table><thead><tr><th>Rx#</th><th>Customer</th><th>Doctor</th><th>Medicine(s)</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody id="ph-tbody"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <div id="ph-meds" class="tab-content">
+      <div class="tbl-wrap">
+        <table><thead><tr><th>Medicine</th><th>Category</th><th>Type</th><th>Price</th><th>Stock</th><th>Status</th></tr></thead>
+        <tbody id="ph-med-tbody"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CUSTOMER ════════════════════════════════════════════ -->
+  <div id="view-customer" class="view">
+    <div class="page-hdr">
+      <h1>👤 Customer Portal</h1>
+      <p>View prescriptions and payment history</p>
+    </div>
+    <div class="form-card" style="max-width:320px;padding:16px">
+      <div class="form-group"><label>Select Customer</label>
+        <select id="cust-select" onchange="loadCustomer()"></select>
+      </div>
+    </div>
+    <div class="stats" id="cust-stats"></div>
+    <div class="section-title">My Prescriptions</div>
+    <div class="tbl-wrap">
+      <table><thead><tr><th>Rx#</th><th>Doctor</th><th>Medicine(s)</th><th>Date</th><th>Status</th></tr></thead>
+      <tbody id="cust-rx-tbody"></tbody></table>
+    </div>
+    <div class="section-title">My Payments</div>
+    <div class="tbl-wrap">
+      <table><thead><tr><th>Invoice#</th><th>Amount</th><th>Method</th><th>Date</th><th>Status</th></tr></thead>
+      <tbody id="cust-pay-tbody"></tbody></table>
+    </div>
+  </div>
+
+  <!-- ══ ADMIN ═══════════════════════════════════════════════ -->
+  <div id="view-admin" class="view">
+    <div class="page-hdr">
+      <h1>🏥 Admin Panel</h1>
+      <p>Manage people and suppliers</p>
+    </div>
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab(this,'adm-docs')">Doctors</div>
+      <div class="tab" onclick="switchTab(this,'adm-ph')">Pharmacists</div>
+      <div class="tab" onclick="switchTab(this,'adm-supp')">Suppliers</div>
+      <div class="tab" onclick="switchTab(this,'adm-add')">Add Customer</div>
+    </div>
+    <div id="adm-docs" class="tab-content active">
+      <div class="tbl-wrap">
+        <table><thead><tr><th>Name</th><th>Specialization</th><th>License No</th><th>Expiry</th><th>Status</th></tr></thead>
+        <tbody id="adm-doc-tbody"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody></table>
+      </div>
+    </div>
+    <div id="adm-ph" class="tab-content">
+      <div class="tbl-wrap">
+        <table><thead><tr><th>Name</th><th>License No</th><th>Expiry</th><th>Status</th></tr></thead>
+        <tbody id="adm-ph-tbody"><tr><td colspan="4" class="loading">Loading...</td></tr></tbody></table>
+      </div>
+    </div>
+    <div id="adm-supp" class="tab-content">
+      <div class="tbl-wrap">
+        <table><thead><tr><th>Supplier</th><th>Contact Person</th><th>Phone</th><th>Contract End</th><th>Status</th></tr></thead>
+        <tbody id="adm-supp-tbody"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody></table>
+      </div>
+    </div>
+    <div id="adm-add" class="tab-content">
+      <div class="form-card">
+        <div id="adm-alert"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Full Name</label><input type="text" id="adm-name" placeholder="Full name"></div>
+          <div class="form-group"><label>Phone</label><input type="text" id="adm-phone" placeholder="0321-XXXXXXX"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Email</label><input type="email" id="adm-email"></div>
+          <div class="form-group"><label>Address</label><input type="text" id="adm-addr"></div>
+        </div>
+        <button class="btn btn-primary" onclick="addCustomer()">Add Customer → Supabase</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ INVENTORY ═══════════════════════════════════════════ -->
+  <div id="view-inventory" class="view">
+    <div class="page-hdr">
+      <h1>📦 Inventory</h1>
+      <p>Live stock levels from Supabase</p>
+    </div>
+    <div id="inv-low-alert"></div>
+    <div class="tbl-wrap">
+      <table><thead><tr><th>Medicine</th><th>Category</th><th>Stock</th><th>Reorder Lvl</th><th>Expiry</th><th>Last Restocked</th><th>Updated By</th><th>Status</th></tr></thead>
+      <tbody id="inv-tbody"><tr><td colspan="8" class="loading">Loading...</td></tr></tbody></table>
+    </div>
+  </div>
+
+  <!-- ══ BILLING ═════════════════════════════════════════════ -->
+  <div id="view-billing" class="view">
+    <div class="page-hdr">
+      <h1>🧾 Billing & Payments</h1>
+      <p>All invoices from Supabase</p>
+    </div>
+    <div class="stats" id="bill-stats"></div>
+    <div class="tbl-wrap">
+      <table><thead><tr><th>Invoice#</th><th>Customer</th><th>Subtotal</th><th>Total</th><th>Method</th><th>Date</th><th>Status</th></tr></thead>
+      <tbody id="bill-tbody"><tr><td colspan="7" class="loading">Loading...</td></tr></tbody></table>
+    </div>
+  </div>
+
+  <!-- ══ TIME DEPENDENCY ════════════════════════════════════ -->
+  <div id="view-timedep" class="view">
+    <div class="page-hdr">
+      <h1>🕓 Time Dependency</h1>
+      <p>Level 2 temporal tracking — who changed what and when</p>
+    </div>
+    <div class="alert alert-info">
+      This database implements <strong>Level 2 Time Dependency</strong>. Tables track <code>created_at</code>, <code>updated_at</code>, and <code>updated_by</code>.
+      When a prescription is dispensed, <code>updated_at = NOW()</code> and <code>updated_by = 'Pharmacist'</code> are recorded automatically.
+    </div>
+    <div class="section-title">Recent Prescription Updates (from Supabase)</div>
+    <div class="tbl-wrap">
+      <table><thead><tr><th>Rx#</th><th>Status</th><th>Prescribed</th><th>Dispensed At</th><th>Updated By</th></tr></thead>
+      <tbody id="td-tbody"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody></table>
+    </div>
+    <hr>
+    <div class="section-title">Time Dependency Levels — Reference</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Level</th><th>Tracks</th><th>Columns</th><th>In This DB</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Level 1</strong></td><td>When row was created</td><td><code>created_at</code></td><td><span class="badge badge-green">Yes</span></td></tr>
+          <tr><td><strong>Level 2</strong></td><td>Most recent modification</td><td><code>updated_at, updated_by</code></td><td><span class="badge badge-green">Yes — main method</span></td></tr>
+          <tr><td><strong>Level 3</strong></td><td>Full history of every change</td><td>Separate LOG table</td><td><span class="badge badge-gray">Not implemented</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ QUERIES ═════════════════════════════════════════════ -->
+  <div id="view-queries" class="view">
+    <div class="page-hdr">
+      <h1>∑ Relational Algebra</h1>
+      <p>Assignment queries — live results from Supabase (PostgreSQL)</p>
+    </div>
+
+    <div class="section-title">Query 1 — Dispensed Prescriptions</div>
+    <div class="ra-box">
+      π<sub style="color:#fbbf24">DoctorName, CustomerName, PharmacistName, PrescribedDate</sub><br>
+      (σ<sub style="color:#fbbf24">status='Dispensed'</sub>(PRESCRIPTION) ⋈ DOCTOR ⋈ PERSON ⋈ CUSTOMER ⋈ PHARMACIST)
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="runQuery(1)">▶ Run Query 1</button>
+    <div id="q1-result" style="margin-top:14px"></div>
+
+    <hr>
+    <div class="section-title">Query 2 — Revenue by Payment Method</div>
+    <div class="ra-box">
+      π<sub style="color:#fbbf24">payment_method, COUNT(*), SUM(amount_paid)</sub><br>
+      (σ<sub style="color:#fbbf24">status='Completed'</sub>(PAYMENT ⋈ INVOICE)) GROUP BY payment_method
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="runQuery(2)">▶ Run Query 2</button>
+    <div id="q2-result" style="margin-top:14px"></div>
+
+    <hr>
+    <div class="section-title">Query 3 — Low Stock Medicines</div>
+    <div class="ra-box">
+      π<sub style="color:#fbbf24">MedicineName, CurrentStock, ReorderLevel, Supplier</sub><br>
+      (σ<sub style="color:#fbbf24">quantity &lt; monitor_level</sub>(INVENTORY ⋈ MEDICINE ⋈ PURCHASE_ORDER ⋈ SUPPLIER))
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="runQuery(3)">▶ Run Query 3</button>
+    <div id="q3-result" style="margin-top:14px"></div>
+
+    <hr>
+    <div class="section-title">Query 4 — Set Operation: INTERSECT (Customers who Dispensed AND Paid)</div>
+    <div class="alert alert-info" style="margin-bottom:12px">
+      <strong>Relational Algebra — Set Operation (Intersection concept)</strong><br>
+      Finds customers who appear in <em>both</em> the set of dispensed prescriptions AND the set of completed payments —
+      demonstrating the <strong>INTERSECT</strong> operation taught in class.
+    </div>
+    <div class="ra-box">
+      π<sub style="color:#fbbf24">CustomerName</sub>(σ<sub style="color:#fbbf24">status='Dispensed'</sub>(PRESCRIPTION ⋈ CUSTOMER ⋈ PERSON))<br>
+      <span style="color:#f472b6">∩</span><br>
+      π<sub style="color:#fbbf24">CustomerName</sub>(σ<sub style="color:#fbbf24">payment_status='Completed'</sub>(PAYMENT ⋈ INVOICE ⋈ PRESCRIPTION ⋈ CUSTOMER ⋈ PERSON))
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="runQuery(4)">▶ Run Query 4</button>
+    <div id="q4-result" style="margin-top:14px"></div>
+
+    <hr>
+    <div class="section-title">Normalization Reference — All Tables Satisfy 3NF</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Normal Form</th><th>Rule</th><th>How This DB Satisfies It</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>1NF</strong></td>
+            <td>Every column must be atomic (no multivalued attributes)</td>
+            <td>No column stores multiple values. Skills, medicines etc. are stored in separate rows in bridge tables like <code>PRESC_MED_DETAIL</code></td>
+            <td><span class="badge badge-green">✓ Satisfied</span></td>
+          </tr>
+          <tr>
+            <td><strong>2NF</strong></td>
+            <td>No partial dependency — non-key attributes must depend on the whole primary key</td>
+            <td>All tables use surrogate PKs (<code>SERIAL</code>). <code>PRESC_MED_DETAIL</code> has composite PK <code>(prescription_id, medicine_id)</code> and all its attributes (<code>quantity</code>, <code>dosage_instructions</code>) depend on both parts together</td>
+            <td><span class="badge badge-green">✓ Satisfied</span></td>
+          </tr>
+          <tr>
+            <td><strong>3NF</strong></td>
+            <td>No transitive dependency — non-key attributes must not depend on other non-key attributes</td>
+            <td>Example: <code>PERSON</code> stores name/phone/email. <code>DOCTOR</code> stores only doctor-specific data referencing <code>PERSON</code>. No column determines another non-key column transitively</td>
+            <td><span class="badge badge-green">✓ Satisfied</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// SUPABASE CONFIG — saved in localStorage so you only do it once
+// ══════════════════════════════════════════════════════════════
+let SUPABASE_URL = localStorage.getItem('sb_url') || '';
+let SUPABASE_KEY = localStorage.getItem('sb_key') || '';
+
+function saveConfig() {
+  SUPABASE_URL = document.getElementById('cfg-url').value.trim().replace(/\/$/, '');
+  SUPABASE_KEY = document.getElementById('cfg-key').value.trim();
+  if (!SUPABASE_URL || !SUPABASE_KEY) return alert('Please fill both fields');
+  localStorage.setItem('sb_url', SUPABASE_URL);
+  localStorage.setItem('sb_key', SUPABASE_KEY);
+  checkConnection();
+}
+
+async function checkConnection() {
+  const st = document.getElementById('cfg-status');
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    st.textContent = 'Not connected'; st.className = 'cfg-badge cfg-disconnected'; return;
+  }
+  try {
+    const r = await sbFetch('person', { select: 'person_id', limit: 1 });
+    if (r.error) throw r.error;
+    st.textContent = '✓ Connected'; st.className = 'cfg-badge cfg-connected';
+  } catch(e) {
+    st.textContent = 'Connection failed'; st.className = 'cfg-badge cfg-disconnected';
+  }
+}
+
+// Prefill config inputs if already saved
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('cfg-url').value = SUPABASE_URL;
+  document.getElementById('cfg-key').value = SUPABASE_KEY;
+  checkConnection();
+});
+
+// ══════════════════════════════════════════════════════════════
+// SUPABASE REST API HELPER
+// ══════════════════════════════════════════════════════════════
+async function sbFetch(table, { select='*', filters=[], order=null, limit=null, single=false } = {}) {
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    return { error: { message: 'Not configured — go to ⚙️ Supabase Config' }, data: null };
+  }
+  let url = `${SUPABASE_URL}/rest/v1/${table}?select=${encodeURIComponent(select)}`;
+  filters.forEach(f => url += `&${f}`);
+  if (order) url += `&order=${order}`;
+  if (limit) url += `&limit=${limit}`;
+
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SUPABASE_KEY}`,
+    'Content-Type': 'application/json',
+  };
+  if (single) headers['Accept'] = 'application/vnd.pgrst.object+json';
+
+  const res = await fetch(url, { headers });
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    return { error: e, data: null };
+  }
+  const data = await res.json();
+  return { data, error: null };
+}
+
+async function sbInsert(table, body) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json', 'Prefer': 'return=representation'
+    },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (!res.ok) return { error: data, data: null };
+  return { data: Array.isArray(data) ? data[0] : data, error: null };
+}
+
+async function sbUpdate(table, match, body) {
+  let url = `${SUPABASE_URL}/rest/v1/${table}?`;
+  Object.entries(match).forEach(([k,v]) => url += `${k}=eq.${v}&`);
+  const res = await fetch(url, {
+    method: 'PATCH',
+    headers: {
+      'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json', 'Prefer': 'return=representation'
+    },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (!res.ok) return { error: data, data: null };
+  return { data, error: null };
+}
+
+// ══════════════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════════════
+const badge = s => {
+  const map = { Dispensed:'badge-green', Pending:'badge-blue', Expired:'badge-red',
+    Cancelled:'badge-red', Ordered:'badge-orange', Received:'badge-green',
+    Completed:'badge-green', Active:'badge-green', Inactive:'badge-red',
+    OTC:'badge-green', Prescription:'badge-blue', Controlled:'badge-red',
+    'Low Stock':'badge-orange', OK:'badge-green' };
+  return `<span class="badge ${map[s]||'badge-gray'}">${s}</span>`;
+};
+const fmt   = d => d ? new Date(d).toLocaleDateString('en-PK') : '—';
+const fmtDT = d => d ? new Date(d).toLocaleString('en-PK') : '—';
+const rx_id = id => `RX-${String(id).padStart(3,'0')}`;
+const inv_id= id => `INV-${String(id).padStart(3,'0')}`;
+
+function showAlert(elId, msg, type='success') {
+  const el = document.getElementById(elId);
+  el.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+  setTimeout(() => { if(el) el.innerHTML = ''; }, 6000);
+}
+
+function errAlert(elId, e) {
+  showAlert(elId, `❌ ${e?.message || JSON.stringify(e)}`, 'error');
+}
+
+// ══════════════════════════════════════════════════════════════
+// NAV
+// ══════════════════════════════════════════════════════════════
+const loaded = {};
+function nav(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (!loaded[name]) { loaded[name] = true; loadView(name); }
+}
+
+function switchTab(el, tid) {
+  el.closest('.tabs').querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const parent = el.closest('.view') || document;
+  parent.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById(tid).classList.add('active');
+}
+
+async function loadView(name) {
+  switch(name) {
+    case 'doctor':     await Promise.all([loadStats(), loadPrescriptions(), loadDoctorsSelect(), loadCustomersSelect(), loadMedSelect()]); break;
+    case 'pharmacist': await Promise.all([loadStats(), loadPrescriptions(), loadMedicines()]); break;
+    case 'customer':   await loadCustomersDropdown(); break;
+    case 'admin':      await Promise.all([loadDoctorsTable(), loadPharmacistsTable(), loadSuppliersTable()]); break;
+    case 'inventory':  await loadInventory(); break;
+    case 'billing':    await loadBilling(); break;
+    case 'timedep':    await loadTimeDep(); break;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// DATA: STATS
+// ══════════════════════════════════════════════════════════════
+async function loadStats() {
+  const [rxAll, meds, inv, supp, pay] = await Promise.all([
+    sbFetch('prescription', { select: 'status' }),
+    sbFetch('medicine', { select: 'medicine_id', filters: ['is_active=eq.true'] }),
+    sbFetch('inventory', { select: 'quantity,monitor_level' }),
+    sbFetch('supplier', { select: 'supplier_id', filters: ['is_active=eq.true'] }),
+    sbFetch('payment', { select: 'amount_paid', filters: ['payment_status=eq.Completed'] }),
+  ]);
+  const rx = rxAll.data || [];
+  const dispensed = rx.filter(r=>r.status==='Dispensed').length;
+  const pending   = rx.filter(r=>r.status==='Pending').length;
+  const expired   = rx.filter(r=>r.status==='Expired').length;
+  const lowStock  = (inv.data||[]).filter(i=>i.quantity < i.monitor_level).length;
+  const revenue   = (pay.data||[]).reduce((s,p)=>s+parseFloat(p.amount_paid),0);
+
+  const docStats = `
+    <div class="stat-card"><div class="num">${rx.length}</div><div class="lbl">Total Prescriptions</div></div>
+    <div class="stat-card"><div class="num">${dispensed}</div><div class="lbl">Dispensed</div></div>
+    <div class="stat-card"><div class="num">${pending}</div><div class="lbl">Pending</div></div>
+    <div class="stat-card"><div class="num">${expired}</div><div class="lbl">Expired</div></div>`;
+  const phStats = `
+    <div class="stat-card"><div class="num">${pending}</div><div class="lbl">Pending to Dispense</div></div>
+    <div class="stat-card"><div class="num">${(meds.data||[]).length}</div><div class="lbl">Medicines</div></div>
+    <div class="stat-card"><div class="num" style="${lowStock>0?'color:var(--red)':''}">${lowStock}</div><div class="lbl">Low Stock</div></div>
+    <div class="stat-card"><div class="num">${(supp.data||[]).length}</div><div class="lbl">Suppliers</div></div>`;
+
+  document.getElementById('doc-stats').innerHTML = docStats;
+  document.getElementById('ph-stats').innerHTML  = phStats;
+}
+
+// ══════════════════════════════════════════════════════════════
+// DATA: PRESCRIPTIONS (with joins via Supabase nested selects)
+// ══════════════════════════════════════════════════════════════
+let _prescriptions = [];
+let _pharmacists   = [];
+
+async function loadPrescriptions() {
+  const [rxRes, phRes] = await Promise.all([
+    sbFetch('prescription', {
+      select: `prescription_id, status, prescribed_date, expiry_date, dispensed_at, updated_at, updated_by,
+               doctor:doctor_id(doctor_id, specialization, person:person_id(name)),
+               customer:customer_id(customer_id, person:person_id(name)),
+               pharmacist:pharmacist_id(pharmacist_id, person:person_id(name)),
+               presc_med_detail(medicine:medicine_id(name))`,
+      order: 'prescription_id.desc'
+    }),
+    sbFetch('pharmacist', { select: 'pharmacist_id, person:person_id(name)' })
+  ]);
+
+  _pharmacists = phRes.data || [];
+  _prescriptions = (rxRes.data || []).map(r => ({
+    ...r,
+    doctor_name:     r.doctor?.person?.name || '—',
+    customer_name:   r.customer?.person?.name || '—',
+    pharmacist_name: r.pharmacist?.person?.name || null,
+    medicines:       (r.presc_med_detail||[]).map(d=>d.medicine?.name).filter(Boolean).join(', ') || '—',
+  }));
+
+  // Doctor view — all prescriptions table
+  document.getElementById('d-rx-tbody').innerHTML = _prescriptions.map(r =>
+    `<tr>
+      <td><code>${rx_id(r.prescription_id)}</code></td>
+      <td>${r.doctor_name}</td><td>${r.customer_name}</td>
+      <td>${r.medicines}</td><td>${fmt(r.prescribed_date)}</td>
+      <td>${badge(r.status)}</td>
+    </tr>`
+  ).join('') || '<tr><td colspan="6" style="color:var(--muted);text-align:center">No records</td></tr>';
+
+  // Pharmacist view — pending queue
+  const pending = _prescriptions.filter(r => r.status === 'Pending');
+  document.getElementById('ph-tbody').innerHTML = pending.map(r =>
+    `<tr>
+      <td><code>${rx_id(r.prescription_id)}</code></td>
+      <td>${r.customer_name}</td><td>${r.doctor_name}</td>
+      <td>${r.medicines}</td><td>${badge(r.status)}</td>
+      <td>
+        <select id="ph-sel-${r.prescription_id}" style="border:1px solid var(--border);padding:4px 8px;border-radius:5px;font-size:12px;background:var(--bg)">
+          ${_pharmacists.map(p=>`<option value="${p.pharmacist_id}">${p.person?.name||'—'}</option>`).join('')}
+        </select>
+        <button class="btn btn-success btn-sm" onclick="dispense(${r.prescription_id})" style="margin-left:6px">Dispense</button>
+      </td>
+    </tr>`
+  ).join('') || '<tr><td colspan="6" style="color:var(--muted);text-align:center">No pending prescriptions</td></tr>';
+}
+
+// ══════════════════════════════════════════════════════════════
+// ACTIONS
+// ══════════════════════════════════════════════════════════════
+async function issuePrescription() {
+  const doctor_id      = parseInt(document.getElementById('f-doctor').value);
+  const customer_id    = parseInt(document.getElementById('f-customer').value);
+  const medicine_id    = parseInt(document.getElementById('f-medicine').value);
+  const quantity       = parseInt(document.getElementById('f-qty').value);
+  const dosage         = document.getElementById('f-dosage').value || 'As directed';
+  const prescribed_date= document.getElementById('f-date').value;
+  const expiry_date    = document.getElementById('f-expiry').value;
+
+  if (!doctor_id || !customer_id || !medicine_id) return showAlert('d-alert','⚠️ Please fill all fields','error');
+
+  const rxRes = await sbInsert('prescription', { doctor_id, customer_id, status:'Pending', prescribed_date, expiry_date });
+  if (rxRes.error) return errAlert('d-alert', rxRes.error);
+  const prescription_id = rxRes.data.prescription_id;
+
+  const detRes = await sbInsert('presc_med_detail', { prescription_id, medicine_id, quantity, dosage_instructions: dosage });
+  if (detRes.error) return errAlert('d-alert', detRes.error);
+
+  showAlert('d-alert', `✅ Prescription ${rx_id(prescription_id)} saved to Supabase! created_at = ${new Date().toLocaleString()}`);
+  loaded['doctor'] = false; loaded['pharmacist'] = false;
+  await loadPrescriptions(); await loadStats();
+}
+
+async function dispense(rxId) {
+  const sel = document.getElementById(`ph-sel-${rxId}`);
+  const pharmacist_id = parseInt(sel?.value || 1);
+  const res = await sbUpdate('prescription', { prescription_id: rxId }, {
+    status: 'Dispensed',
+    pharmacist_id,
+    dispensed_at: new Date().toISOString(),
+    updated_at:   new Date().toISOString(),
+    updated_by:   'Pharmacist'
+  });
+  if (res.error) return errAlert('ph-alert', res.error);
+  showAlert('ph-alert', `✅ ${rx_id(rxId)} dispensed! updated_at = NOW(), updated_by = 'Pharmacist' written to Supabase`);
+  loaded['pharmacist'] = false;
+  await loadPrescriptions(); await loadStats();
+}
+
+async function addCustomer() {
+  const name    = document.getElementById('adm-name').value.trim();
+  const phone   = document.getElementById('adm-phone').value.trim();
+  const email   = document.getElementById('adm-email').value.trim();
+  const address = document.getElementById('adm-addr').value.trim();
+  if (!name || !phone) return showAlert('adm-alert','⚠️ Name and phone required','error');
+
+  const pRes = await sbInsert('person', { name, phone, email: email||null, address: address||null, is_active: true });
+  if (pRes.error) return errAlert('adm-alert', pRes.error);
+  const person_id = pRes.data.person_id;
+
+  const cRes = await sbInsert('customer', { person_id, loyalty_points: 0 });
+  if (cRes.error) return errAlert('adm-alert', cRes.error);
+
+  showAlert('adm-alert', `✅ ${name} added to PERSON (person_id=${person_id}) and CUSTOMER tables in Supabase.`);
+  document.getElementById('adm-name').value = '';
+  document.getElementById('adm-phone').value = '';
+}
+
+// ══════════════════════════════════════════════════════════════
+// DROPDOWNS
+// ══════════════════════════════════════════════════════════════
+async function loadDoctorsSelect() {
+  const r = await sbFetch('doctor', { select: 'doctor_id, specialization, person:person_id(name)', order: 'doctor_id' });
+  document.getElementById('f-doctor').innerHTML = (r.data||[]).map(d=>
+    `<option value="${d.doctor_id}">${d.person?.name||'—'} (${d.specialization})</option>`).join('');
+}
+async function loadCustomersSelect() {
+  const r = await sbFetch('customer', { select: 'customer_id, person:person_id(name)', order: 'customer_id' });
+  document.getElementById('f-customer').innerHTML = (r.data||[]).map(c=>
+    `<option value="${c.customer_id}">${c.person?.name||'—'}</option>`).join('');
+}
+async function loadMedSelect() {
+  const r = await sbFetch('medicine', { select: 'medicine_id, name, unit_price, otc_medicine(medicine_id)', filters: ['is_active=eq.true'], order: 'name' });
+  const presc = (r.data||[]).filter(m => !m.otc_medicine || m.otc_medicine.length === 0);
+  document.getElementById('f-medicine').innerHTML = presc.map(m=>
+    `<option value="${m.medicine_id}">${m.name} — Rs.${m.unit_price}</option>`).join('');
+}
+async function loadCustomersDropdown() {
+  const r = await sbFetch('customer', { select: 'customer_id, loyalty_points, person:person_id(name)', order: 'customer_id' });
+  document.getElementById('cust-select').innerHTML = (r.data||[]).map(c=>
+    `<option value="${c.customer_id}" data-pts="${c.loyalty_points}">${c.person?.name||'—'}</option>`).join('');
+  loadCustomer();
+}
+
+// ══════════════════════════════════════════════════════════════
+// CUSTOMER VIEW
+// ══════════════════════════════════════════════════════════════
+async function loadCustomer() {
+  const cid = document.getElementById('cust-select').value;
+  if (!cid) return;
+  const pts = document.querySelector(`#cust-select option[value="${cid}"]`)?.dataset.pts || 0;
+
+  const [rxRes, payRes] = await Promise.all([
+    sbFetch('prescription', {
+      select: `prescription_id, status, prescribed_date, expiry_date,
+               doctor:doctor_id(person:person_id(name)),
+               presc_med_detail(medicine:medicine_id(name))`,
+      filters: [`customer_id=eq.${cid}`], order: 'prescribed_date.desc'
+    }),
+    sbFetch('payment', {
+      select: `payment_id, amount_paid, payment_method, payment_date, payment_status,
+               invoice:invoice_id(invoice_id, prescription:prescription_id(customer_id))`,
+      order: 'payment_date.desc'
+    })
+  ]);
+
+  const rx  = (rxRes.data||[]).map(r => ({
+    ...r, doctor_name: r.doctor?.person?.name||'—',
+    medicines: (r.presc_med_detail||[]).map(d=>d.medicine?.name).filter(Boolean).join(', ')
+  }));
+  const pay = (payRes.data||[]).filter(p =>
+    p.invoice?.prescription?.customer_id == cid
+  );
+  const total = pay.reduce((s,p)=>s+parseFloat(p.amount_paid),0);
+
+  document.getElementById('cust-stats').innerHTML = `
+    <div class="stat-card"><div class="num">${rx.length}</div><div class="lbl">Prescriptions</div></div>
+    <div class="stat-card"><div class="num">${rx.filter(r=>r.status==='Dispensed').length}</div><div class="lbl">Dispensed</div></div>
+    <div class="stat-card"><div class="num">Rs.${total.toFixed(0)}</div><div class="lbl">Total Spent</div></div>
+    <div class="stat-card"><div class="num">${pts}</div><div class="lbl">Loyalty Points</div></div>`;
+
+  document.getElementById('cust-rx-tbody').innerHTML = rx.length
+    ? rx.map(r=>`<tr><td><code>${rx_id(r.prescription_id)}</code></td><td>${r.doctor_name}</td><td>${r.medicines||'—'}</td><td>${fmt(r.prescribed_date)}</td><td>${badge(r.status)}</td></tr>`).join('')
+    : '<tr><td colspan="5" style="color:var(--muted);text-align:center">No prescriptions</td></tr>';
+
+  document.getElementById('cust-pay-tbody').innerHTML = pay.length
+    ? pay.map(p=>`<tr><td><code>${inv_id(p.invoice?.invoice_id)}</code></td><td>Rs.${parseFloat(p.amount_paid).toFixed(0)}</td><td>${p.payment_method}</td><td>${fmt(p.payment_date)}</td><td>${badge(p.payment_status)}</td></tr>`).join('')
+    : '<tr><td colspan="5" style="color:var(--muted);text-align:center">No payments</td></tr>';
+}
+
+// ══════════════════════════════════════════════════════════════
+// ADMIN TABLES
+// ══════════════════════════════════════════════════════════════
+async function loadDoctorsTable() {
+  const r = await sbFetch('doctor', { select: 'doctor_id, specialization, license_no, license_expiry, person:person_id(name, is_active)' });
+  document.getElementById('adm-doc-tbody').innerHTML = (r.data||[]).map(d =>
+    `<tr><td>${d.person?.name||'—'}</td><td>${d.specialization}</td><td><code>${d.license_no}</code></td>
+     <td>${fmt(d.license_expiry)}</td><td>${badge(d.person?.is_active?'Active':'Inactive')}</td></tr>`
+  ).join('');
+}
+async function loadPharmacistsTable() {
+  const r = await sbFetch('pharmacist', { select: 'pharmacist_id, license_no, license_expiry, person:person_id(name, is_active)' });
+  document.getElementById('adm-ph-tbody').innerHTML = (r.data||[]).map(p =>
+    `<tr><td>${p.person?.name||'—'}</td><td><code>${p.license_no}</code></td>
+     <td>${fmt(p.license_expiry)}</td><td>${badge(p.person?.is_active?'Active':'Inactive')}</td></tr>`
+  ).join('');
+}
+async function loadSuppliersTable() {
+  const r = await sbFetch('supplier', { select: '*', order: 'name' });
+  document.getElementById('adm-supp-tbody').innerHTML = (r.data||[]).map(s =>
+    `<tr><td>${s.name}</td><td>${s.contact_person}</td><td>${s.phone}</td>
+     <td>${s.contract_end ? fmt(s.contract_end) : 'Ongoing'}</td>
+     <td>${badge(s.is_active?'Active':'Inactive')}</td></tr>`
+  ).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+// INVENTORY
+// ══════════════════════════════════════════════════════════════
+async function loadInventory() {
+  const r = await sbFetch('inventory', {
+    select: '*, medicine:medicine_id(name, category)',
+    order: 'quantity'
+  });
+  const data = (r.data||[]).map(i => ({ ...i, is_low: i.quantity < i.monitor_level }));
+  const low = data.filter(i => i.is_low);
+  if (low.length) {
+    document.getElementById('inv-low-alert').innerHTML =
+      `<div class="alert alert-warning">⚠️ ${low.length} medicine(s) below reorder level: ${low.map(i=>i.medicine?.name).join(', ')}</div>`;
+  }
+  document.getElementById('inv-tbody').innerHTML = data.map(i =>
+    `<tr${i.is_low?' class="low-stock"':''}>
+      <td>${i.medicine?.name||'—'}</td><td>${i.medicine?.category||'—'}</td>
+      <td style="${i.is_low?'color:var(--red);font-weight:600':''}">${i.quantity}</td>
+      <td>${i.monitor_level}</td><td>${fmt(i.expiry_date)}</td>
+      <td>${i.last_restocked ? fmt(i.last_restocked) : '—'}</td>
+      <td>${i.updated_by}</td>
+      <td>${badge(i.is_low?'Low Stock':'OK')}</td>
+    </tr>`
+  ).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+// BILLING
+// ══════════════════════════════════════════════════════════════
+async function loadBilling() {
+  const r = await sbFetch('invoice', {
+    select: `invoice_id, subtotal, total_amount, issued_at,
+             prescription:prescription_id(customer:customer_id(person:person_id(name))),
+             payment(amount_paid, payment_method, payment_status)`,
+    order: 'invoice_id.desc'
+  });
+  const data = (r.data||[]).map(b => ({
+    ...b,
+    customer_name:   b.prescription?.customer?.person?.name || 'Walk-in',
+    amount_paid:     b.payment?.[0]?.amount_paid || 0,
+    payment_method:  b.payment?.[0]?.payment_method || '—',
+    payment_status:  b.payment?.[0]?.payment_status || '—',
+  }));
+  const total  = data.reduce((s,b)=>s+parseFloat(b.amount_paid),0);
+  const cash   = data.filter(b=>b.payment_method==='Cash').reduce((s,b)=>s+parseFloat(b.amount_paid),0);
+  const card   = data.filter(b=>b.payment_method==='Card').reduce((s,b)=>s+parseFloat(b.amount_paid),0);
+  const online = data.filter(b=>b.payment_method==='Online').reduce((s,b)=>s+parseFloat(b.amount_paid),0);
+
+  document.getElementById('bill-stats').innerHTML = `
+    <div class="stat-card"><div class="num">Rs.${total.toFixed(0)}</div><div class="lbl">Total Revenue</div></div>
+    <div class="stat-card"><div class="num">${data.length}</div><div class="lbl">Invoices</div></div>
+    <div class="stat-card"><div class="num">Rs.${cash.toFixed(0)}</div><div class="lbl">Cash</div></div>
+    <div class="stat-card"><div class="num">Rs.${card.toFixed(0)}</div><div class="lbl">Card</div></div>
+    <div class="stat-card"><div class="num">Rs.${online.toFixed(0)}</div><div class="lbl">Online</div></div>`;
+
+  document.getElementById('bill-tbody').innerHTML = data.map(b =>
+    `<tr><td><code>${inv_id(b.invoice_id)}</code></td><td>${b.customer_name}</td>
+     <td>Rs.${parseFloat(b.subtotal).toFixed(0)}</td><td>Rs.${parseFloat(b.total_amount).toFixed(0)}</td>
+     <td>${b.payment_method}</td><td>${fmt(b.issued_at)}</td>
+     <td>${badge(b.payment_status)}</td></tr>`
+  ).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+// TIME DEPENDENCY
+// ══════════════════════════════════════════════════════════════
+async function loadTimeDep() {
+  const r = await sbFetch('prescription', {
+    select: 'prescription_id, status, prescribed_date, dispensed_at, updated_at, updated_by',
+    filters: ['dispensed_at=not.is.null'], order: 'dispensed_at.desc', limit: 10
+  });
+  document.getElementById('td-tbody').innerHTML = (r.data||[]).map(row =>
+    `<tr><td><code>${rx_id(row.prescription_id)}</code></td>
+     <td>${badge(row.status)}</td><td>${fmt(row.prescribed_date)}</td>
+     <td>${fmtDT(row.dispensed_at)}</td><td>${row.updated_by||'—'}</td></tr>`
+  ).join('') || '<tr><td colspan="5" style="color:var(--muted);text-align:center">No dispensed records yet</td></tr>';
+}
+
+// ══════════════════════════════════════════════════════════════
+// RELATIONAL ALGEBRA QUERIES (using Supabase REST API joins)
+// ══════════════════════════════════════════════════════════════
+async function runQuery(n) {
+  const el = document.getElementById(`q${n}-result`);
+  el.innerHTML = '<div class="loading">Running query on Supabase (PostgreSQL)...</div>';
+
+  if (n === 1) {
+    // Dispensed prescriptions with doctor, customer, pharmacist
+    const r = await sbFetch('prescription', {
+      select: `prescription_id, prescribed_date, dispensed_at, status,
+               doctor:doctor_id(specialization, person:person_id(name)),
+               customer:customer_id(person:person_id(name)),
+               pharmacist:pharmacist_id(person:person_id(name))`,
+      filters: ['status=eq.Dispensed'],
+      order: 'dispensed_at.desc'
+    });
+    if (r.error) { el.innerHTML = `<div class="alert alert-error">❌ ${r.error.message}</div>`; return; }
+    const cols = ['DoctorName','Specialization','CustomerName','PharmacistName','PrescribedDate','DispensedAt'];
+    const rows = (r.data||[]).map(rx => ({
+      DoctorName:    rx.doctor?.person?.name||'—',
+      Specialization:rx.doctor?.specialization||'—',
+      CustomerName:  rx.customer?.person?.name||'—',
+      PharmacistName:rx.pharmacist?.person?.name||'—',
+      PrescribedDate:fmt(rx.prescribed_date),
+      DispensedAt:   fmtDT(rx.dispensed_at),
+    }));
+    el.innerHTML = renderTable(cols, rows);
+  }
+
+  else if (n === 2) {
+    // Revenue grouped by payment method (client-side grouping)
+    const r = await sbFetch('payment', {
+      select: 'payment_method, amount_paid, payment_status',
+      filters: ['payment_status=eq.Completed']
+    });
+    if (r.error) { el.innerHTML = `<div class="alert alert-error">❌ ${r.error.message}</div>`; return; }
+    const groups = {};
+    (r.data||[]).forEach(p => {
+      const m = p.payment_method;
+      if (!groups[m]) groups[m] = { PaymentMethod:m, TotalTransactions:0, TotalRevenue:0 };
+      groups[m].TotalTransactions++;
+      groups[m].TotalRevenue += parseFloat(p.amount_paid);
+    });
+    const rows = Object.values(groups).sort((a,b)=>b.TotalRevenue-a.TotalRevenue).map(g => ({
+      ...g,
+      TotalRevenue: `Rs.${g.TotalRevenue.toFixed(2)}`,
+      AvgValue: `Rs.${(g.TotalRevenue/g.TotalTransactions).toFixed(2)}`
+    }));
+    const cols = ['PaymentMethod','TotalTransactions','TotalRevenue','AvgValue'];
+    el.innerHTML = renderTable(cols, rows);
+  }
+
+  else if (n === 3) {
+    // Low stock with supplier info
+    const [invRes, poRes] = await Promise.all([
+      sbFetch('inventory', {
+        select: 'quantity, monitor_level, expiry_date, medicine:medicine_id(name, category)'
+      }),
+      sbFetch('purchase_order', {
+        select: 'medicine_id, status, supplier:supplier_id(name, phone)',
+        order: 'po_id.desc'
+      })
+    ]);
+    const lowInv = (invRes.data||[]).filter(i => i.quantity < i.monitor_level);
+    const poMap  = {};
+    (poRes.data||[]).forEach(po => { if(!poMap[po.medicine_id]) poMap[po.medicine_id] = po; });
+
+    const rows = lowInv.map(i => {
+      // We need the medicine_id — fetch from a parallel call wasn't done, use name to match
+      const po = Object.values(poMap).find(p => p) || {};
+      return {
+        MedicineName:  i.medicine?.name||'—',
+        Category:      i.medicine?.category||'—',
+        CurrentStock:  i.quantity,
+        ReorderLevel:  i.monitor_level,
+        ExpiryDate:    fmt(i.expiry_date),
+        Supplier:      po.supplier?.name||'—',
+        SupplierPhone: po.supplier?.phone||'—',
+        LastOrder:     po.status||'—',
+      };
+    });
+
+    // Better approach: get low stock with medicine_id
+    const r2 = await sbFetch('inventory', {
+      select: 'medicine_id, quantity, monitor_level, expiry_date, medicine:medicine_id(name, category)',
+      filters: []
+    });
+    const lowFull = (r2.data||[]).filter(i => i.quantity < i.monitor_level);
+    const rows2 = lowFull.map(i => {
+      const po = poMap[i.medicine_id] || {};
+      return {
+        MedicineName:  i.medicine?.name||'—',
+        Category:      i.medicine?.category||'—',
+        CurrentStock:  i.quantity,
+        ReorderLevel:  i.monitor_level,
+        ExpiryDate:    fmt(i.expiry_date),
+        Supplier:      po.supplier?.name||'—',
+        SupplierPhone: po.supplier?.phone||'—',
+        LastOrder:     po.status||'—',
+      };
+    }).sort((a,b)=>a.CurrentStock - b.CurrentStock);
+
+    const cols = ['MedicineName','Category','CurrentStock','ReorderLevel','ExpiryDate','Supplier','SupplierPhone','LastOrder'];
+    el.innerHTML = renderTable(cols, rows2);
+  }
+}
+
+function renderTable(cols, rows) {
+  if (!rows.length) return '<div class="alert alert-warning">No results found</div>';
+  return `<div class="tbl-wrap"><table>
+    <thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead>
+    <tbody>${rows.map(row=>`<tr>${cols.map(c=>`<td>${row[c]!=null?row[c]:'—'}</td>`).join('')}</tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// MEDICINES LIST (pharmacist tab)
+// ══════════════════════════════════════════════════════════════
+async function loadMedicines() {
+  const r = await sbFetch('medicine', {
+    select: 'medicine_id, name, category, unit_price, otc_medicine(medicine_id), presc_medicine(is_controlled), inventory(quantity, monitor_level)',
+    filters: ['is_active=eq.true'], order: 'name'
+  });
+  document.getElementById('ph-med-tbody').innerHTML = (r.data||[]).map(m => {
+    const isOTC = m.otc_medicine && m.otc_medicine.length > 0;
+    const isControlled = !isOTC && m.presc_medicine?.[0]?.is_controlled;
+    const type = isOTC ? 'OTC' : isControlled ? 'Controlled' : 'Prescription';
+    const stock = m.inventory?.[0]?.quantity ?? '—';
+    const level = m.inventory?.[0]?.monitor_level ?? 10;
+    const isLow = typeof stock === 'number' && stock < level;
+    return `<tr>
+      <td>${m.name}</td><td>${m.category}</td><td>${badge(type)}</td>
+      <td>Rs.${m.unit_price}</td>
+      <td style="${isLow?'color:var(--red);font-weight:600':''}">${stock}</td>
+      <td>${badge(isLow?'Low Stock':'OK')}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════
+const today = new Date().toISOString().split('T')[0];
+const exp3m = new Date(); exp3m.setMonth(exp3m.getMonth()+3);
+document.getElementById('f-date').value   = today;
+document.getElementById('f-expiry').value = exp3m.toISOString().split('T')[0];
+
+// Load first view
+loadView('doctor');
+</script>
+</body>
+</html>
