@@ -11,6 +11,50 @@
 -- Go to your project → SQL Editor → New Query → Paste & Run
 
 -- ============================================================
+-- NORMALIZATION — All tables satisfy Third Normal Form (3NF)
+-- ============================================================
+-- 1NF: All column values are atomic (no multivalued/repeating groups).
+--      Medicines in a prescription are stored as individual rows in
+--      PRESC_MED_DETAIL, not as comma-separated values in one column.
+--
+-- 2NF: No partial dependencies exist.
+--      All tables with a single surrogate PK (SERIAL) trivially satisfy
+--      2NF.  The one composite-PK table, PRESC_MED_DETAIL(prescription_id,
+--      medicine_id), has every non-key attribute (quantity,
+--      dosage_instructions, added_at, modified_at) dependent on the
+--      FULL composite key — not just one part of it.
+--
+-- 3NF: No transitive dependencies exist.
+--      Example: DOCTOR stores only doctor-specific attributes
+--      (specialization, license_no, license_expiry) and references
+--      PERSON(person_id) for shared attributes.  There is no column
+--      that determines another non-key column transitively.
+--      Similarly, PRESCRIPTION.pharmacist_id references PHARMACIST;
+--      it does not redundantly store the pharmacist's name or license.
+-- ============================================================
+
+-- ============================================================
+-- CARDINALITY OF RELATIONSHIPS
+-- ============================================================
+--  Relationship                          Cardinality
+--  ------------------------------------  -----------
+--  PERSON  →  DOCTOR                    1 : 1
+--  PERSON  →  PHARMACIST                1 : 1
+--  PERSON  →  CUSTOMER                  1 : 1
+--  MEDICINE → OTC_MEDICINE              1 : 1  (subtype)
+--  MEDICINE → PRESC_MEDICINE            1 : 1  (subtype)
+--  DOCTOR  →  PRESCRIPTION              1 : M  (one doctor, many Rx)
+--  CUSTOMER → PRESCRIPTION              1 : M  (one customer, many Rx)
+--  PHARMACIST → PRESCRIPTION            1 : M  (one pharmacist dispenses many)
+--  PRESCRIPTION × MEDICINE              M : N  (resolved by PRESC_MED_DETAIL)
+--  SUPPLIER → PURCHASE_ORDER            1 : M
+--  MEDICINE → PURCHASE_ORDER            1 : M
+--  MEDICINE → INVENTORY                 1 : 1  (one stock record per medicine)
+--  PRESCRIPTION → INVOICE               1 : 1
+--  INVOICE  → PAYMENT                   1 : M  (supports partial payments)
+-- ============================================================
+
+-- ============================================================
 -- DDL: CREATE TABLES
 -- ============================================================
 
@@ -508,3 +552,26 @@ CREATE POLICY "public_all" ON PAYMENT          FOR ALL USING (true) WITH CHECK (
 -- SELECT M.name, INV.quantity, INV.monitor_level, S.name
 -- FROM INVENTORY INV JOIN MEDICINE M ... JOIN PURCHASE_ORDER PO ... JOIN SUPPLIER S ...
 -- WHERE INV.quantity < INV.monitor_level
+
+-- ============================================================
+-- QUERY 4: Set Operation — INTERSECT
+-- Customers who have BOTH a Dispensed prescription AND a Completed payment
+-- Demonstrates: π(CustomerName)(σ status='Dispensed'(RX ⋈ CUSTOMER ⋈ PERSON))
+--               ∩
+--               π(CustomerName)(σ payment_status='Completed'(PAYMENT ⋈ INVOICE ⋈ RX ⋈ CUSTOMER ⋈ PERSON))
+-- ============================================================
+-- SELECT P.name AS CustomerName
+-- FROM PRESCRIPTION RX
+-- JOIN CUSTOMER C  ON RX.customer_id  = C.customer_id
+-- JOIN PERSON   P  ON C.person_id     = P.person_id
+-- WHERE RX.status = 'Dispensed'
+--
+-- INTERSECT
+--
+-- SELECT P.name AS CustomerName
+-- FROM PAYMENT PAY
+-- JOIN INVOICE  INV ON PAY.invoice_id    = INV.invoice_id
+-- JOIN PRESCRIPTION RX ON INV.prescription_id = RX.prescription_id
+-- JOIN CUSTOMER C      ON RX.customer_id      = C.customer_id
+-- JOIN PERSON   P      ON C.person_id         = P.person_id
+-- WHERE PAY.payment_status = 'Completed';

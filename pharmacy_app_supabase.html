@@ -485,6 +485,28 @@
         </tbody>
       </table>
     </div>
+    <hr>
+    <div class="section-title">Cardinality Reference — Entity Relationships</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Entity A</th><th>Cardinality</th><th>Entity B</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>PERSON</td><td style="text-align:center;font-family:var(--mono);font-weight:600">1 : 1</td><td>DOCTOR</td><td>Specialization (EER subtype)</td></tr>
+          <tr><td>PERSON</td><td style="text-align:center;font-family:var(--mono);font-weight:600">1 : 1</td><td>PHARMACIST</td><td>EER subtype</td></tr>
+          <tr><td>PERSON</td><td style="text-align:center;font-family:var(--mono);font-weight:600">1 : 1</td><td>CUSTOMER</td><td>EER subtype</td></tr>
+          <tr><td>MEDICINE</td><td style="text-align:center;font-family:var(--mono);font-weight:600">1 : 1</td><td>OTC_MEDICINE</td><td>EER subtype (optional)</td></tr>
+          <tr><td>MEDICINE</td><td style="text-align:center;font-family:var(--mono);font-weight:600">1 : 1</td><td>PRESC_MEDICINE</td><td>EER subtype (optional)</td></tr>
+          <tr><td>DOCTOR</td><td style="text-align:center;font-family:var(--mono);font-weight:600">1 : M</td><td>PRESCRIPTION</td><td>One doctor writes many prescriptions</td></tr>
+          <tr><td>CUSTOMER</td><td style="text-align:center;font-family:var(--mono);font-weight:600">1 : M</td><td>PRESCRIPTION</td><td>One customer can have many prescriptions</td></tr>
+          <tr><td>PHARMACIST</td><td style="text-align:center;font-family:var(--mono);font-weight:600">1 : M</td><td>PRESCRIPTION</td><td>One pharmacist dispenses many</td></tr>
+          <tr><td>PRESCRIPTION × MEDICINE</td><td style="text-align:center;font-family:var(--mono);font-weight:600">M : N</td><td>PRESC_MED_DETAIL</td><td>Associative/bridge entity resolves M:N</td></tr>
+          <tr><td>SUPPLIER</td><td style="text-align:center;font-family:var(--mono);font-weight:600">1 : M</td><td>PURCHASE_ORDER</td><td>One supplier fulfils many orders</td></tr>
+          <tr><td>MEDICINE</td><td style="text-align:center;font-family:var(--mono);font-weight:600">1 : 1</td><td>INVENTORY</td><td>One stock record per medicine</td></tr>
+          <tr><td>PRESCRIPTION</td><td style="text-align:center;font-family:var(--mono);font-weight:600">1 : 1</td><td>INVOICE</td><td>Each dispensed Rx generates one invoice</td></tr>
+          <tr><td>INVOICE</td><td style="text-align:center;font-family:var(--mono);font-weight:600">1 : M</td><td>PAYMENT</td><td>Supports partial / split payments</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
 </div><!-- /main -->
@@ -1072,6 +1094,63 @@ async function runQuery(n) {
 
     const cols = ['MedicineName','Category','CurrentStock','ReorderLevel','ExpiryDate','Supplier','SupplierPhone','LastOrder'];
     el.innerHTML = renderTable(cols, rows2);
+  }
+
+  else if (n === 4) {
+    // SET OPERATION: INTERSECT
+    // Customers who have BOTH a Dispensed prescription AND a Completed payment
+    el.innerHTML = '<div class="loading">Running INTERSECT set operation on Supabase...</div>';
+
+    const [rxRes, payRes] = await Promise.all([
+      // Set A: customers with a Dispensed prescription
+      sbFetch('prescription', {
+        select: `status, customer:customer_id(customer_id, person:person_id(name))`,
+        filters: ['status=eq.Dispensed']
+      }),
+      // Set B: customers who made a Completed payment
+      sbFetch('payment', {
+        select: `payment_status, invoice:invoice_id(prescription:prescription_id(customer:customer_id(customer_id, person:person_id(name))))`,
+        filters: ['payment_status=eq.Completed']
+      })
+    ]);
+
+    if (rxRes.error || payRes.error) {
+      el.innerHTML = `<div class="alert alert-error">❌ ${(rxRes.error||payRes.error).message}</div>`;
+      return;
+    }
+
+    // Build Set A — customer_ids with dispensed Rx
+    const setA = new Set(
+      (rxRes.data||[])
+        .map(r => r.customer?.customer_id)
+        .filter(Boolean)
+    );
+
+    // Build Set B — customer_ids with completed payments
+    const setB = new Map();
+    (payRes.data||[]).forEach(p => {
+      const cust = p.invoice?.prescription?.customer;
+      if (cust?.customer_id) {
+        setB.set(cust.customer_id, cust.person?.name || '—');
+      }
+    });
+
+    // INTERSECT = customers in BOTH Set A and Set B
+    const intersect = [];
+    setB.forEach((name, cid) => {
+      if (setA.has(cid)) intersect.push({ CustomerName: name, CustomerID: cid });
+    });
+
+    // Sort by name
+    intersect.sort((a,b) => a.CustomerName.localeCompare(b.CustomerName));
+
+    const header = `
+      <div class="alert alert-success" style="margin-bottom:12px">
+        ✅ INTERSECT result: <strong>${intersect.length}</strong> customer(s) found in <em>both</em> sets
+        &nbsp;|&nbsp; Set A (Dispensed Rx): <strong>${setA.size}</strong> unique customers
+        &nbsp;|&nbsp; Set B (Completed Payments): <strong>${setB.size}</strong> unique customers
+      </div>`;
+    el.innerHTML = header + renderTable(['CustomerID','CustomerName'], intersect);
   }
 }
 
