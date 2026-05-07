@@ -320,6 +320,7 @@
       <div class="tab" onclick="switchTab(this,'adm-ph')">Pharmacists</div>
       <div class="tab" onclick="switchTab(this,'adm-supp')">Suppliers</div>
       <div class="tab" onclick="switchTab(this,'adm-add')">Add Customer</div>
+      <div class="tab" onclick="switchTab(this,'adm-edit');editLoadTable()">✏️ Edit / Delete</div>
     </div>
     <div id="adm-docs" class="tab-content active">
       <div class="tbl-wrap">
@@ -351,6 +352,56 @@
           <div class="form-group"><label>Address</label><input type="text" id="adm-addr"></div>
         </div>
         <button class="btn btn-primary" onclick="addCustomer()">Add Customer → Supabase</button>
+      </div>
+    </div>
+
+    <!-- ══ EDIT / DELETE TAB ══ -->
+    <div id="adm-edit" class="tab-content">
+      <div id="edit-alert"></div>
+      <div class="form-card" style="padding:16px 20px;margin-bottom:18px">
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <div class="form-group" style="min-width:220px;margin:0">
+            <label>Select Table to Edit</label>
+            <select id="edit-table-sel" onchange="editLoadTable()">
+              <option value="">— choose a table —</option>
+              <option value="person">Person</option>
+              <option value="customer">Customer</option>
+              <option value="doctor">Doctor</option>
+              <option value="pharmacist">Pharmacist</option>
+              <option value="medicine">Medicine</option>
+              <option value="inventory">Inventory</option>
+              <option value="supplier">Supplier</option>
+              <option value="prescription">Prescription</option>
+            </select>
+          </div>
+          <div style="padding-top:18px">
+            <button class="btn btn-primary btn-sm" onclick="editLoadTable()">🔄 Refresh</button>
+          </div>
+          <div style="padding-top:18px;color:var(--muted);font-size:12.5px">
+            Click <strong>✏️ Edit</strong> to modify any row &nbsp;·&nbsp; Click <strong>🗑 Delete</strong> to remove it permanently
+          </div>
+        </div>
+      </div>
+      <div id="edit-table-wrap" style="display:none">
+        <div class="tbl-wrap" style="overflow-x:auto">
+          <table id="edit-main-table">
+            <thead id="edit-thead"></thead>
+            <tbody id="edit-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <!-- Edit modal -->
+      <div id="edit-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center">
+        <div style="background:#fff;border-radius:10px;padding:28px 30px;width:90%;max-width:600px;max-height:88vh;overflow-y:auto;position:relative;box-shadow:0 20px 60px rgba(0,0,0,0.25)">
+          <button onclick="closeEditModal()" style="position:absolute;top:14px;right:16px;background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);line-height:1">✕</button>
+          <h3 id="edit-modal-title" style="font-size:16px;font-weight:600;margin-bottom:18px;padding-right:30px"></h3>
+          <div id="edit-modal-alert"></div>
+          <div id="edit-modal-fields" style="display:grid;grid-template-columns:1fr 1fr;gap:14px"></div>
+          <div style="display:flex;gap:10px;margin-top:22px;padding-top:16px;border-top:1px solid var(--border)">
+            <button class="btn btn-accent" onclick="saveEditRow()">💾 Save Changes → Supabase</button>
+            <button class="btn" style="background:#f3f4f6;color:#374151" onclick="closeEditModal()">Cancel</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1184,6 +1235,215 @@ async function loadMedicines() {
       <td>${badge(isLow?'Low Stock':'OK')}</td>
     </tr>`;
   }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+// EDIT / DELETE SYSTEM
+// ══════════════════════════════════════════════════════════════
+
+// Schema config: which columns to show and which are editable
+const EDIT_SCHEMA = {
+  person: {
+    pk: 'person_id',
+    select: 'person_id,name,phone,email,address,is_active',
+    cols: ['person_id','name','phone','email','address','is_active'],
+    editable: ['name','phone','email','address','is_active'],
+    types:    { is_active: 'boolean' }
+  },
+  customer: {
+    pk: 'customer_id',
+    select: 'customer_id,person_id,loyalty_points',
+    cols: ['customer_id','person_id','loyalty_points'],
+    editable: ['loyalty_points'],
+    types: { loyalty_points: 'number' }
+  },
+  doctor: {
+    pk: 'doctor_id',
+    select: 'doctor_id,person_id,specialization,license_no,license_expiry',
+    cols: ['doctor_id','person_id','specialization','license_no','license_expiry'],
+    editable: ['specialization','license_no','license_expiry'],
+    types: { license_expiry: 'date' }
+  },
+  pharmacist: {
+    pk: 'pharmacist_id',
+    select: 'pharmacist_id,person_id,license_no,license_expiry',
+    cols: ['pharmacist_id','person_id','license_no','license_expiry'],
+    editable: ['license_no','license_expiry'],
+    types: { license_expiry: 'date' }
+  },
+  medicine: {
+    pk: 'medicine_id',
+    select: 'medicine_id,name,manufacturer,unit_price,category,is_active',
+    cols: ['medicine_id','name','manufacturer','unit_price','category','is_active'],
+    editable: ['name','manufacturer','unit_price','category','is_active'],
+    types: { unit_price: 'number', is_active: 'boolean' }
+  },
+  inventory: {
+    pk: 'inventory_id',
+    select: 'inventory_id,medicine_id,quantity,monitor_level,expiry_date,updated_by',
+    cols: ['inventory_id','medicine_id','quantity','monitor_level','expiry_date','updated_by'],
+    editable: ['quantity','monitor_level','expiry_date','updated_by'],
+    types: { quantity: 'number', monitor_level: 'number', expiry_date: 'date' }
+  },
+  supplier: {
+    pk: 'supplier_id',
+    select: 'supplier_id,name,phone,email,contact_person,contract_start,contract_end,is_active',
+    cols: ['supplier_id','name','phone','email','contact_person','contract_start','contract_end','is_active'],
+    editable: ['name','phone','email','contact_person','contract_start','contract_end','is_active'],
+    types: { contract_start: 'date', contract_end: 'date', is_active: 'boolean' }
+  },
+  prescription: {
+    pk: 'prescription_id',
+    select: 'prescription_id,doctor_id,customer_id,pharmacist_id,status,prescribed_date,expiry_date',
+    cols: ['prescription_id','doctor_id','customer_id','pharmacist_id','status','prescribed_date','expiry_date'],
+    editable: ['status','prescribed_date','expiry_date'],
+    types: { prescribed_date: 'date', expiry_date: 'date' }
+  }
+};
+
+let _editCurrentTable = '';
+let _editCurrentRow   = null;
+
+async function editLoadTable() {
+  const tbl = document.getElementById('edit-table-sel').value;
+  if (!tbl) { document.getElementById('edit-table-wrap').style.display = 'none'; return; }
+  _editCurrentTable = tbl;
+
+  const schema = EDIT_SCHEMA[tbl];
+  const wrap   = document.getElementById('edit-table-wrap');
+  const tbody  = document.getElementById('edit-tbody');
+  tbody.innerHTML = `<tr><td colspan="${schema.cols.length + 2}" class="loading">Loading ${tbl}...</td></tr>`;
+  wrap.style.display = 'block';
+
+  // Build header
+  document.getElementById('edit-thead').innerHTML =
+    '<tr>' + schema.cols.map(c => `<th>${c}</th>`).join('') + '<th>Edit</th><th>Delete</th></tr>';
+
+  const r = await sbFetch(tbl, { select: schema.select, order: `${schema.pk}.asc` });
+  if (r.error) {
+    tbody.innerHTML = `<tr><td colspan="${schema.cols.length + 2}" style="color:var(--red);padding:16px">❌ ${r.error.message||JSON.stringify(r.error)}</td></tr>`;
+    return;
+  }
+
+  const rows = r.data || [];
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="${schema.cols.length + 2}" style="color:var(--muted);text-align:center;padding:16px">No records found</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = rows.map((row, i) => {
+    const cells = schema.cols.map(c => {
+      const v = row[c];
+      if (v === null || v === undefined) return '<td style="color:var(--muted)">—</td>';
+      if (typeof v === 'boolean') return `<td>${v ? '<span class="badge badge-green">true</span>' : '<span class="badge badge-red">false</span>'}</td>`;
+      const s = String(v);
+      return `<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${s}">${s}</td>`;
+    }).join('');
+    return `<tr>
+      ${cells}
+      <td><button class="btn btn-sm" style="background:var(--accent);color:#fff" onclick='openEditModal(${JSON.stringify(row)})'>✏️ Edit</button></td>
+      <td><button class="btn btn-sm" style="background:var(--red);color:#fff" onclick="deleteRow('${tbl}','${schema.pk}',${row[schema.pk]})">🗑 Del</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function openEditModal(row) {
+  _editCurrentRow = row;
+  const schema = EDIT_SCHEMA[_editCurrentTable];
+  document.getElementById('edit-modal-title').textContent = `Edit ${_editCurrentTable} — ${schema.pk}: ${row[schema.pk]}`;
+  document.getElementById('edit-modal-alert').innerHTML = '';
+
+  const fieldsEl = document.getElementById('edit-modal-fields');
+  fieldsEl.innerHTML = schema.cols.map(col => {
+    const val = row[col] ?? '';
+    const isEditable = schema.editable.includes(col);
+    const type = schema.types?.[col] || 'text';
+
+    if (!isEditable) {
+      return `<div class="form-group">
+        <label>${col} <span style="color:var(--muted);font-size:10px">(read-only)</span></label>
+        <input type="text" value="${val}" disabled style="opacity:0.5;cursor:not-allowed">
+      </div>`;
+    }
+    if (type === 'boolean') {
+      return `<div class="form-group">
+        <label>${col}</label>
+        <select id="ef-${col}" style="border:1px solid var(--border);border-radius:6px;padding:8px 11px;font-size:13.5px;background:var(--bg)">
+          <option value="true" ${val===true||val==='true'?'selected':''}>true</option>
+          <option value="false" ${val===false||val==='false'?'selected':''}>false</option>
+        </select>
+      </div>`;
+    }
+    return `<div class="form-group">
+      <label>${col}</label>
+      <input type="${type==='number'?'number':type==='date'?'date':'text'}" id="ef-${col}" value="${val}"
+        style="border:1px solid var(--border);border-radius:6px;padding:8px 11px;font-size:13.5px;background:var(--bg)">
+    </div>`;
+  }).join('');
+
+  const modal = document.getElementById('edit-modal');
+  modal.style.display = 'flex';
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal').style.display = 'none';
+  _editCurrentRow = null;
+}
+
+async function saveEditRow() {
+  if (!_editCurrentRow) return;
+  const schema = EDIT_SCHEMA[_editCurrentTable];
+  const body = {};
+
+  for (const col of schema.editable) {
+    const el = document.getElementById(`ef-${col}`);
+    if (!el) continue;
+    const type = schema.types?.[col] || 'text';
+    let val = el.value.trim();
+    if (val === '' || val === '—') { body[col] = null; continue; }
+    if (type === 'boolean') { body[col] = val === 'true'; continue; }
+    if (type === 'number')  { body[col] = parseFloat(val); continue; }
+    body[col] = val;
+  }
+
+  const alertEl = document.getElementById('edit-modal-alert');
+  alertEl.innerHTML = '<div class="alert alert-info">Saving...</div>';
+
+  const res = await sbUpdate(_editCurrentTable, { [schema.pk]: _editCurrentRow[schema.pk] }, body);
+  if (res.error) {
+    alertEl.innerHTML = `<div class="alert alert-error">❌ ${res.error.message || JSON.stringify(res.error)}</div>`;
+    return;
+  }
+
+  alertEl.innerHTML = '<div class="alert alert-success">✅ Saved successfully!</div>';
+  setTimeout(() => {
+    closeEditModal();
+    editLoadTable();
+    showAlert('edit-alert', `✅ ${_editCurrentTable} record updated in Supabase.`);
+  }, 800);
+}
+
+async function deleteRow(table, pk, id) {
+  if (!confirm(`⚠️ Delete ${table} where ${pk}=${id}?\n\nThis is permanent and may fail if other records depend on it.`)) return;
+
+  let url = `${SUPABASE_URL}/rest/v1/${table}?${pk}=eq.${id}`;
+  const res = await fetch(url, {
+    method: 'DELETE',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    showAlert('edit-alert', `❌ Delete failed: ${e.message || e.details || JSON.stringify(e)}`, 'error');
+    return;
+  }
+
+  showAlert('edit-alert', `✅ Record deleted from ${table}.`);
+  editLoadTable();
 }
 
 // ══════════════════════════════════════════════════════════════
