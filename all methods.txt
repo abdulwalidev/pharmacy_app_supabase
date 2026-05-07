@@ -1,0 +1,2777 @@
+1
+Database Management System
+Ali Irfan
+Assistant Professor,
+Department of Computer Science,
+Bahria University Islamabad
+Rules of Engagement (ROEs)
+Weapons of Attention Destruction (WAD)
+2
+“I don’t believe in taking the right decision, I take a
+decision and make it right”.
+Muhammad Ali Jinnah
+Word of Wisdom
+Brief Course Plan
+• Introduction to Course & Database
+• Historical Background & File System
+• Data Models, DBMS Components & Applications
+• Conceptual Design (ER Model)
+• Attributes & Relationships
+• EER Model
+• Modeling Relationships
+• EER to Relational Mapping
+• Normalization
+• Working with SQL (Structure Query Language)
+• Term Project (A Full-Fledge working DB Design)
+3
+Learning Material
+http://www.w3school.com
+http://google.com
+Introduction
+• Early ages, records were managed on paper & saved in big cupboards/ rooms
+• Distinguish data with labels/tags
+• It was hard and tedious to answer simple questions
+• Example: University Admission Office
+• How many students are currently enrolled?
+• How many are studying Social Sciences?
+• How many are under CGPA 2.0?
+4
+Basic Terminologies
+Data
+• Raw Facts & objects have meaning to user
+• Can be recorded/stored in a system
+Structured
+• Very organized & can easily be uploaded
+• Have defined data type & length
+• Easy to perform operations (e.g. search)
+• Example:
+• Name, Phone Number, Address, CNIC
+Un-Structured
+• Has its own structure
+• Doesn’t have specific or defined data type
+• Not easy to perform operations
+• Example:
+• Audio, Video, Graphics, Objects
+5
+Basic Terminologies
+2000017-1Ali Irfan
+2000017-2Mushtaq Ahmed
+2000018-1Asma Tariq
+2000017-3Imran Qureshi
+This is data/facts
+What is this about?
+Are you getting anything from this?
+Class Roaster
+Semester: Spring 2018
+Total # of Students: 4
+Course: DBMS
+Class: BSCS 4 (A & B)
+Room: 26
+Roll NumberName
+2000017-1Ali Irfan
+2000017-2Mushtaq Ahmed
+2000018-1Asma Tariq
+2000017-3Imran Qureshi
+This is called Information.
+Processed form of data that increases knowledge of users is called information.
+Processing
+Add some extra attributes and
+apply formatting
+Basic Terminologies
+6
+Basic Terminologies
+Basic Terminologies
+An organized collection of logically related data
+• May contain both data & information
+• Example:
+• Can store data like name, registration number, class in tabular form
+• Additionally, save an image of class roaster
+7
+Basic Terminologies
+Data that describes and gives
+information about other data
+Data that describe the properties or characteristics of end-user data
+and the context of those data
+• Typically describes data names, size or length, valid values
+• For unstructured data, it may include description, ownership, context
+• Provide ease in implementation and retrieval
+Basic Terminologies
+DescriptionMaxMinMax Length (Size)TypeName
+Includes course/subject title--50AlphanumericCourse
+Indicates class name with section--20AlphanumericClass
+Specific room to attend class3012IntegerRoom
+Indicates Spring/Fall along with year--20AlphanumericSemester
+Number of registered students50102IntegerTotal # of Students
+Name of the student--30AlphanumericName
+Student Registration Number--10AlphanumericRoll Number
+Class Roaster
+Semester: Spring 2018
+Total # of Students: 4
+Course: DBMS
+Class: BSCS 4 (A & B)
+Room: 26
+Roll NumberName
+2000017-1Ali Irfan
+2000017-2Mushtaq Ahmed
+Class Roaster Image (Screenshot)
+Metadata
+• FileNameOnDisk
+• FileSize
+• Description
+• UploadedOnDate
+• UploadedByUser
+8
+File Processing System
+Collection of file(s) and program that access (read/write) in designated files
+• Generally one program addresses one problem area (department)
+• Admissions, Exams, Departments etc.
+• One program may connect to multiple files but within same domain
+• Admission department may have Applicants & Admitted students files
+• Each application has it’s on file format & read/write logic
+• New files & programs are added over time
+File Processing System
+A B C A B A B
+Ordering Filling
+System Invoicing System Payroll System
+Customer
+File
+Ordering
+File
+Inventory
+File
+Inventory
+File
+Customer
+File
+Employee
+File
+Ordering Department Account Department Payroll Department
+9
+File Processing System
+Property Dealing Office/Company
+• Sales & Marketing Department
+• Maintain record owners who want to sale/rent property
+• Maintain record of clients seeking to buy/lease a property
+• Lease Department
+• Prepare lease agreements/deeds referred by Sales Department
+• Need to maintain property & clients information
+• Administration
+• Maintain list of employees & salaries
+File Processing System - Sales
+Haji Property
+For Rent (Ref# P1001)
+Owner Details
+ID: O111
+Name: Mr. Acha
+Cell: 0321 111 111 1
+Email: achu@achu.com
+Location Details
+Address: H#1, St#1, I-
+8/1, Islamabad
+Type: House Portion
+No. Beds: 4
+Rent Demand: 100k
+Staff Assigned
+Haji Bashir
+Haji Property
+Client Details (Ref# C1111)
+Client Details
+Name: Mr. Bashir
+Cell: 0321 222 222 2
+Email: bahsir@mail.com
+Requirement Details
+Type: House Portion
+No. Beds: 4
+Max Rent: 90k
+General: Bijli, Pani, Gas
+Staff Assigned
+Haji Mushtaq
+10
+File Processing System - Sales
+OwnerNoRentRoomsTypeAddressProp. No
+O111100k4Portion2, I-9/1, IsbP1001
+O112200k6Full HouseKacha Stop, RwpP1002
+O11310k1TentBari Imam, IsbP1003
+Cell NoCNICNameOwnerNo
+321 111 111 10000 0000000 0Mr AchuO111
+333 444 444 45555 55555555 5Mr ImranO112
+321 2222 222 211111 111111 1Peer sbO113
+MaxRentTypeCell NoCNICNameClientNo
+90kPortion321 222 222 21111 1111..Mr. BashirC1111
+5kTent333 444 444 41111 22222.Mr. LuqmanC2222
+File that keeps record of
+all available property
+along with specification.
+File that keeps record of
+all property owners
+File that keeps record of
+all clients searching for
+property
+Client File
+Owner File
+Property File
+File Processing System - Lease
+Haji Property
+Lease # 1001
+Property Details
+No: P1001
+Address: 2, I-9/1, Isb
+Client Details
+No: C1111
+Name: Mr. Bashir
+Cell: 321 222 222 2
+Start Date: Sep 1, 2025
+End Date: Dec 31, 2025
+Payment Details
+Monthly Rent: 95k
+Payment Mode: Cash
+Security Deposit: 100k
+11
+File Processing System - Lease
+RentEndStartClient NoProp NoLease No
+90,000Aug 31, 2026Sep 1, 2025C1111P1001A0001
+50,000Dec 31, 2025Aug 15, 2025C2222P1002A0002
+10,000Feb 1, 2027Sep 1, 2025C1111P1003A0003
+File that keeps record of
+all available property
+along with specification.
+Lease
+File Processing System – Property Home
+12
+File Processing System - Files
+File Processing System - Drawbacks
+A B C
+Sales System
+Property
+File
+Client
+File
+Owner
+File
+Sales Department Lease Department
+A B C
+Lease System
+Lease
+File
+Client
+File
+Property
+File
+13
+• Data and it’s definition is stored in the application program
+• No separation of concern
+• No access or control to access & manipulate data beyond application scope
+File Processing System - Drawbacks
+Database Approach
+
+
+Database Management System
+Ali Irfan
+Assistant Professor,
+Department of Computer Science,
+Bahria University Islamabad
+• Data and it’s definition is stored in the application program
+• No separation of concern
+• No access or control to access & manipulate data beyond application scope
+File Processing System - Drawbacks
+Database Approach
+1
+2
+Building Blocks - Database Approach
+Data Model
+Graphical system used to capture nature & relationships among data
+Entity
+A person, a place, an object, an event, or a concept in the user
+environment about which the organization wishes to maintain data.
+Relationships
+Relationships among entities with respect to organizational data/
+business environment
+Relational Database
+A database that represents data as a collection of
+tables in which all data relationships are
+represented by common values in related tables
+Database Management System
+Helps to achieve/enable use of database approach
+A software system that is used to define, create, maintain, and provide controlled
+access to user databases
+Definition  with the help of Data Definition Language (DDL)
+Creation  with help of Data Manipulation Language (DML)
+Controlled Access  Security, integrity, concurrency & recovery
+3
+4
+Database Management System
+• Program data-independence
+• Planned data redundancy
+• New skill set and resources
+• Licensing & administration
+• Transformations cost (legacy to DB approach)• Data consistency
+• Productivity/improved development time
+• Consistent data formats (must have to follow standard) • Data formats & definitions (shared conflicts)
+DB Applications
+• Single PC
+• 2-Tier or Client Server
+• Multitier
+5
+6
+
+
+1
+Database Management System
+Ali Irfan
+Assistant Professor,
+Department of Computer Science,
+Bahria University Islamabad
+Functions of DBMS
+Save, Update & Get Data definitions, constraints,
+indexes, size etc.
+Series of actions by
+single user Concurrency
+In case of damage,
+mechanism to
+recover
+Who is authorized
+and who’s not?
+Provide an interface
+for communication
+across applications
+Utility services like data
+import, statistical
+analysis, monitoring
+1
+2
+2
+• Generally start with Enterprise Data Modeling
+• Establishes scope & general content about organization
+• Talks about BIG PICTURE, not particular DB design
+Database – Development Process
+Review Current System
+Analyze Business Areas to Support
+What data is needed
+Plan DB Project (s)
++
++
++
+Database – SDLC
+Enterprise modeling
+• Analyze current system
+• Analyze general business functions
+• Identify & justify need for new data to
+support business functions
+Conceptual modeling
+• Develop Entities & relationships
+• Validate conceptual with enterprise model
+• Output is Conceptual Schema
+• May be changed later for missing information
+Logical DB Design
+• Identify data/attributes to be saved
+• Its technology independent
+• Describe data in term of technology to use;
+for example RBDMS
+• Detailed review of input/outputs
+• Transform conceptual model along with
+reconciled data into atomic elements
+• Output is Logical Schema
+Physical DB Design
++
+• Transform Logical to Physical Schema
+• How data is to store on secondary
+memory? (e.g. hard drive)
+• Requires knowledge of DBMS
+• Goal is: efficient & secure data processing
+Implementation
+• Write, test and install programs/scripts
+• Connect with applications like C#
+• Prepare documentation & train users
+• Transform & load legacy data
+• Delivery to end-user
+Maintenance
+• DB evolve during this phase
+• Records are added, modified & removed
+• Continues need to maintain efficiently
+& security
+• This keeps on going until life of the
+application
+This is iterative process and keeps on changing
+3
+4
+3
+Database – Modeling
+Customer Product Raw Material Order Invoice
+EmployeeWork Order Equipment
+EmployeeEquipmentWork OrderInvoiceOrderRaw Mat.ProductCustomer
+Business Planning
+Product Development
+Order Fulfillment
+Order Delivery
+Accounts
+Data Entity
+Business Function
+X
+XXX
+XX X
+XXX
+XX XXX
+X X X X XX
+XXXXX XX
+Database – Modeling
+Cooking Oil Sugar Salt Milk
+ChickenFlour
+ChickenBlack TeaRiceFlourMilkSaltSugarCooking
+Oil
+Tea
+Chicken Karahi
+Biriyani
+Paratha
+Kheer
+Boil Egg
+Data Entity
+Business Function
+X X
+X XX
+X X
+XX
+X
+XX
+Black TeaRice
+X
+X X
+X
+X
+5
+6
+4
+Database – Modeling
+Student Course Faculty Inventory Fee
+Salary Campus
+LibraryCampusFeeSalaryInventoryCourseFacultyStudent
+Admissions
+Accounts
+Faculties/Departments
+HR
+Administration
+Exams
+Data Entity
+Business Function
+X
+XX
+X X
+X
+XX XXX
+X X
+XXXX XX
+X
+X X X
+X
+X
+X
+Library
+X
+X XXXX
+Database – Conceptual Model
+Student
+Course
+Faculty
+Inventory
+Fee Salary
+Campus
+Library
+7
+8
+5
+Database – Conceptual Schema
+Student
+Name, Roll No, Address,
+Phone,
+Course
+Faculty No, Title, Code,
+Credit Hours, Contact Hours
+Faculty
+No#, Name, Office-No, Phone,
+Email, Domain
+Inventory
+Book Title, Author, Price,
+PublisherFee
+Amount, Deposit Date Salary
+Amount, Month
+Campus
+Name, Address, Phone
+Library
+Address, No. Of Books,
+Phone
+Some authors call it like this way; however, no primary/foreign keys are identified
+Database – Logical Schema
+Student
+Name, Roll No, Address,
+Phone,
+Course
+Student Roll No, Faculty No,
+Title, Code, Credit Hours,
+Contact Hours
+Faculty
+No#, Name, Office-No, Phone,
+Email, Domain
+Inventory
+Book Title, Author, Price,
+PublisherFee
+Student Roll No, Amount,
+Deposit Date
+Salary
+Faculty No#, Amount, Month
+Campus
+Name, Address, Phone
+Library
+Address, No. Of Books,
+Phone
+PK/FK are identified; some authors suggest to have data types as well.
+9
+10
+6
+Database – Physical Schema
+Student
+Name (VARCHAR 40) , Roll No (INT),
+Address (VARCHAR 50), Phone
+(VARCHAR20)
+Course
+Student Roll No (INT), Faculty No (INT),
+Title (VARCHAR 30), Code (VARCHAR 5),
+Credit Hours (INT), Contact Hours (INT)
+Faculty
+No#, Name (INT), Office-No (INT),
+Phone (VARCHAR 20), Email (VARCHAR
+30), Domain (VARCHAR 20)
+Inventory
+Book Title (VARCHAR 30), Author
+(VARCHAR 30), Price (MONEY),
+Publisher (VARCHAR 50)Fee
+Student Roll No (INT), Amount
+(MONEY), Deposit Date (DATE)
+Salary
+Faculty No# (INT), Amount
+(MONEY), Month (DATE)
+Campus
+Name (VARCHAR 40), Address
+(VARCHAR 50), Phone (VARCHAR 20)
+Library
+Address (VARCHAR 50), No. Of
+Books (INT), Phone (VARCHAR 20)
+Summary
+PhysicalLogicalConceptualFeature
+Entity Name
+Relationships
+Attributes
+Primary Key
+Foreign Key
+Table Name
+Column Name
+Data Type
+X
+X
+X
+X
+X
+X
+X
+X
+X
+X
+X
+X
+11
+12
+
+
+
+1
+Database Management System
+Ali Irfan
+Assistant Professor,
+Department of Computer Science,
+Bahria University Islamabad
+Modeling Data in Business
+Model is simplified version of a concept, phenomenon, relationship or
+an aspect of the real world
+• E-R Model is mainstream approach for conceptual modeling
+• Used as communication tool between DB designer & end user during analysis phase
+• Enhanced version is later used for physical design of DB
+E-R Model is logical representation of organizational data or business area using entities
+(data) and relationships between entities (associations)
+1
+2
+2
+• Conceptual Model is derived from enterprise model
+• Business rules help constitute enterprise model and in-turn conceptual model
+Business Rule?
+A statement that describes or constraints an aspect of the business
+Prevent Cause Suggest
+Modeling Data in Business
+• Business rules are main drivers to obtain data/information.
+• Should be expressed in terms familiar to end users
+• Maintained in a repository & each rule is described only once
+• Define Scope: consider only those rules that have impact on your application
+“A student can register for a course only if he or she has successfully completed prerequisite of the
+that course.”
+“A customer will be eligible to get a FREE cup of coffee only if he or she visits our café thrice a
+week.”
+“Friday is causal dress day.”
+Modeling Data in Business
+This doesn’t impact our domain
+3
+4
+3
+• Term
+• A word or phrase that has meaning to business
+• It’s a key word used to form Data Name
+• Should be defined carefully with shared understanding
+• Example: Course, Student, Faculty
+• No need to define common terms
+• Example: Year, Day, Telephone
+• Fact
+• An association between two or more terms
+• Its simple declarative statement that relates terms
+“A student may register a particular course from any faculty in any year.”
+Modeling Data in Business
+5
+
+
+Database Management System
+Ali Irfan
+Assistant Professor,
+Department of Computer Science,
+Bahria University Islamabad
+Agenda
+• E-R Modeling
+• Entities & their types
+• Attributes & Types
+1
+2
+A person, a place, an object, an event, or a concept in the user environment
+about which the organization wishes to maintain data
+• Entities are derived from data
+• “The one who controls the meaning of data controls the data”
+Entity
+Entity Type
+• Collection of entities having common characteristics or
+properties
+• Its skeleton; and have corresponding data definition
+(metadata)
+• Similar to a CLASS in OOP
+Entity Instance
+• A single occurrence of an entity type
+• Its actual data
+• Similar to an object (instance) of a CLASS in OOP
+Entity Type vs Entity Instance
+Entity
+IntegerRollNo
+VarChar(30)Name
+VarChar(11)Phone
+Instance - 1
+10001
+Nawaz Sharif
+3210000000
+Instance - 2
+10002
+Asif Zardari
+3211111111
+Instance - 3
+10003
+Imran Khan
+3212222222
+PhoneNameRollNo
+3210000000Nawaz Sharif10001
+3211111111Asif Zardari10002
+3212222222Imran Khan10003
+3334444444Farooq Sattar Bhai10004
+3005555555Siraj ul Haq10005
+3156666666Sheikh Rasheed10006
+Entity Type
+Entity Instance
+3
+4
+Types of Entities
+• Exists independent of other entities
+• Have definite meaning to business (end user)
+• Instance, has always unique identifier
+• Baseline for conceptual model (schema)
+• Example: Employee
+• Existence depends of other entity type(s)
+• Defining entity type is called Identifying Owner(s)
+• Has no definite meaning to business (end user)
+• Need the help of owner entity type(s) to drive meaning
+• Generally defined in logical/physical schema
+• Example: Dependent
+Strong Weak
+EMPLOYEE DEPENDENT
+Naming Conventions
+• Generally specified in all CAPS
+• Entity name should singular noun
+• Example: STUDENT, CUSTOMER, COURSE
+• Should have shared meaning in business
+• Example: Organization A may use CUSTOMER while organization B CLIENT
+• Try to avoid long names, especially with spaces
+• Example: REGISTERATION FOR COURSE
+ REGISTERATION
+5
+6
+Attributes
+A property or characteristic of an entity or relationship type that is of
+interest to the organization
+• This is something organization whishes to maintain data about (e.g. Name, Phone)
+Required
+• An attribute that MUST have a value for an entity
+instance it belongs to
+• Example: STUDENT entity type must have Name,
+Phone & Email values
+Optional
+• An attribute that may or may not have a value for an
+entity instance it belongs to
+• Example: STUDENT entity type may or may not have
+values against Work Phone & Work Email
+Types of Attributes
+• Can’t be broken down into smaller units
+• Maintain existence independent of other attributes
+• Example: Vehicle ID, Color, Weight
+• Can be broken down into smaller meaningful
+units
+• Example:
+• Address  Street Address, City, Country
+• DOB  Year, Month, Date
+• Provide considerable flexibility in data retrial
+• When to break?
+• Depends on organizational use
+• To perform any technical operation later in program
+Simple
+Composite
+More examples?
+7
+8
+Types of Attributes
+• Contains single value against an entity instance
+• Example: Vehicle ID, Color, Weight
+• Can take more than one value for a given instance
+• Example:
+• Skill  Web Designing, DB Designing, Business Analysis
+• Phone  Cell-1, Cell-2, Work, Home
+• Generally, modeling tools (e.g. Visio) don’t have
+standard notation to represent
+Single Value
+Multivalued
+More examples?
+Types of Attributes
+• Values can be calculated from related attributes
+• Used when there is dynamic factor involved
+• Example: Calculate Age based on DOB • A pre-calculated attribute derived from either single
+value or composite attributes
+• Doesn’t have meaning to business
+• Help fast retrial or likely scenarios
+• Example: Phone number can like +92321111111 or
+92-321-1111111 or (92)(0321)1111111
+• A new attribute (e.g. Plain Phone) will have 923211111111
+Derived
+Computed
+More examples?
+9
+10
+Types of Attributes
+• Its value distinguishes instances of an entity type
+• Can be single or composite
+• Holds unique value across entity type
+• No two instances can hold same value
+• Example: Student Roll Number, CNIC
+Identifier
+Naming Conventions
+• Generally specified in Initial Capital
+• Example: Name, Address
+• Use space if name consists of more than one word
+• Example: Birth Date, Home Phone
+• During physical design (mapping to DBMS), spaces are often removed though
+• Example: BirthDate, HomePhone
+• Attribute name should have meaning to business
+• Example: Use FulfillmentDate instead of just date to store order’s delivery/pickup date
+11
+12
+Drawing Attributes
+EMPLOYEE
+Name
+RollNo
+Phone Email
+Skill
+EMPLOYEE
+RollNo
+Name
+Phone
+Email
+{Skill}
+Street
+City
+State
+[Address]
+Address
+CityStreet State
+13
+
+Database Management System
+Ali Irfan
+Assistant Professor,
+Department of Computer Science,
+Bahria University Islamabad
+Agenda
+Relationships & Types
+1
+2
+Relationships
+An association representing an interaction among the instances of one or more
+entity types
+• It’s a glue to hold different components of E-R Model
+• Relationships and their characteristics represents business rule
+• Controls the integrity of database
+Relationships
+Relationship Type
+• A meaningful association between entity types
+• Relationship described what can’t be simply by
+entity types.
+• Example: STUDENT completes COURSE
+EMPLOYEE may has DEPENDENTS
+Relationship Instance
+• Association between entity instances
+• Each relationship instance associates exactly one
+entity instance from each participating entity type
+• Example: An instance of STUDENT may have
+associated with multiple instances of COURSE
+without duplication
+3
+4
+Relationships
+STUDENT
+Shahbaz Sharif
+Asad Umar
+Muraad Ali Shah
+Shahid Haqaan Abbasi
+Choudhary Nisar
+COURSE
+DBMS
+OOP
+Web
+Networking
+Software Engineering
+Relationships
+COURSESTUDENT
+DBMSShahbaz Sharif
+WEBShahbaz Sharif
+NetworkingAsad Umar
+DBMSAsad Umar
+OOPShahid Haqaan Abbasi
+Software EngineeringShahid Haqaan Abbasi
+WEBChoudhary Nisar
+OOPMuraad Ali Shah
+5
+6
+Attribute(s) on Relationship
+An attribute that exists when relationship is realized
+STUDENT
+StudentID
+Name
+CellPhone
+Email
+HomePhone
+COURSE
+CourseID
+Title
+CreditHours
+ContactHours
+PreRequsiste
+CompletionDate Score
+STUDENT
+StudentID
+Name
+CellPhone
+Email
+HomePhone
+COURSE
+CourseID
+Title
+CreditHours
+ContactHours
+PreRequsiste
+Result
+StudentID
+CourseID
+CompletionDate
+Score
+Associative Entity
+7
+
+1
+Database Management System
+Ali Irfan
+Assistant Professor,
+Department of Computer Science,
+Bahria University Islamabad
+Agenda
+• Modeling Multiple Relationships
+• Time Dependent Data
+1
+2
+2
+Case
+Consider an organization that has different departments each managed by an
+employee called Director or HoD. There are many employees working in
+organization, however, each employee fall under a specific department;
+generally every employee reports to its superior but this may not be true for
+some scenarios/employees.
+Identify MINIMUM number of entities and formulate relationship between/among them.
+Multiple Relationships on Entity Types
+There can be more than one relationships b/w same entity types
+EMPLOYEE DEPARTMENT
+Supervises
+Supervised By
+Works In Has Workers
+Manages Is Managed By
+3
+4
+3
+Modeling Time Dependent Data
+Data is not always constant and sometime need historical information
+• Price of the product change over time
+• There must be history or record to every event that cause change in price
+• It’s important to capture variations in stats (e.g. Sales)
+5
+
+
+1
+Database Management System
+Ali Irfan
+Assistant Professor,
+Department of Computer Science,
+Bahria University Islamabad
+Agenda
+• Cardinality & Modality
+• Relationship Types
+1
+2
+2
+Relationship – Cardinality
+A constraint/rule, indicates number of instances of one entity that can
+(or must) be associated with each instance of another entity
+STUDENT
+StudentID
+Name
+CellPhone
+Email
+HomePhone
+COURSE
+CourseID
+Title
+CreditHours
+ContactHours
+PreRequsiste
+EMPLOYEE
+EmployeeID
+Name
+CellPhone
+Email
+HomePhone
+DEPENDENT
+DependentID
+Name
+CellPhone
+Email
+Relation
+May register ONE or MANY
+May have NONE, ONE or MANY
+Relationship – Cardinality
+Maximum Cardinality
+Maximum number of instances of one entity (B) that may be associated
+with each instance of another entity (A)
+• Also referred to as mandatory
+• This can hold either ONE or MANY
+• ONE(1)  Only one entity instance from both can entity participates in
+relationship
+• Many  More than one (1) entity instances can participate in relationship
+3
+4
+3
+Relationship – Cardinality
+Maximum Cardinality
+One Many
+EMPLOYEE
+EmployeeID
+Name
+CellPhone
+Email
+HomePhone
+DEPENDENT
+DependentID
+Name
+CellPhone
+Email
+Relation
+Relationship – Cardinality
+Minimum Cardinality
+Minimum number of instances of one entity (B) that may be associated
+with each instance of another entity (A)
+• Also referred to as modality/optional
+• This indicates a Relationship either OPTIONAL or REQUIRED
+• Modality Zero (0)  There doesn’t have to a connection (Optional/Nullable)
+• Modality Zero (1)  There has to be a connection (Required/Not Null)
+5
+6
+4
+Relationship – Cardinality
+Minimum Cardinality (Modality)
+Required (Not Null)
+EMPLOYEE
+EmployeeID
+Name
+CellPhone
+Email
+HomePhone
+DEPENDENT
+DependentID
+Name
+CellPhone
+Email
+Relation
+Optional (Null)
+Relationship – Cardinality
+There are four possible combinations
+At least zero (0)
+Zero or One (0:1)
+Only one (1)
+At least one (1)
+There can be no or maximum 1 entity instance participates in relationship
+There can be no or maximum (N) entity instance participates in relationship
+There must be one & only one entity instance to patriciate in relationship
+There must be at least one entity instance to patriciate in relationship
+Also called OPTIONAL ONE. Also represented as (0,1) or (0:1)
+Also called OPTIONAL MANY. Also represented as (0,M) or (0:M)
+Also called MANDATORY ONE. Also represented as (1,1) or (1:1)
+Also called MANDATORY MANY: Also represented as (1,M) or (1:M)
+7
+8
+5
+Relationship – Cardinality
+EMPLOYEE
+EmployeeID
+Name
+CellPhone
+Email
+HomePhone
+DEPENDENT
+DependentID
+Name
+CellPhone
+Email
+Relation
+One EMPLOYEE can have many DEPENDENTS
+One DEPENDENT can belong to exactly one EMPLOYEE
+An EMPLOYEE may not have any DEPENDENT
+(optional/nullable)
+There must exist an EMPLOYEE for any corresponding DEPENDENT
+(required/not null)
+Relationship – Cardinality
+PhoneNameID
+000 000 0000Achu1
+111 111 1111Bashir2
+222 222 2222Gafoor3
+RelationshipNameEID
+SonAhmed1
+WifeSugrah1
+SonChaand3
+DaughterPinki3
+EMPLOYEE DPENDENT
+9
+10
+6
+Relationship – Cardinality
+STUDENT
+StudentID
+Name
+CellPhone
+Email
+HomePhone
+COURSE
+CourseID
+Title
+CreditHours
+ContactHours
+PreRequsiste
+One STUDENT can register many COURSES
+One COURSE can be registered by many STUDENTS
+A STUDENT may not register any COURSE
+(optional/nullable)
+A COURSE may not be registered by any STUDENT
+(optional/nullable)
+Degree of Relationship
+No. of entity types participating in a relationship
+• There are three (3) degrees of relationships in practice
+• Unary (degree – 1)
+• Only one entity type participate
+• Binary (degree – 2)
+• Two entity types participate
+• Ternary (degree – 3 )
+• Three entity types participate
+11
+12
+7
+Degree of Relationship- Unary
+A relationship between instances of a single entity type
+• Also called Recursive Relationship
+EMPLOYEE PERSON
+Married toManages
+Degree of Relationship- Binary
+A relationship between instances of two entity types
+TEACHER OFFICE SPACE
+PRDOUCT LINE PRODUCT
+STUDENT COURSE
+One to One
+One to Many
+Many to Many
+13
+14
+8
+Degree of Relationship- Ternary
+A relationship among instances of three entity types
+Example: VENDOR may supply many PRODUCT to many OFFICE
+VENDOR OFFICE
+PRODUCT
+Supplies
+ORDER/SUPPLY This entity (associative) may hold data like
+Units supplied, Cost per Unit etc. along with
+VENDOR, PRODUCT and OFFICE data
+Degree of Relationship
+• One to Many or Many to Many
+• A fixed number (instead of arbitrary MANY) may be used to indicate business rule
+• Example: One student can register maximum of 7 courses in any given semester
+STUDENT COURSE
+6
+15
+16
+9
+Practice
+Lets assume CMS, we need to design simple attendance
+system; system should be able to allow each TEACHER to
+mark attendance of STUDENT against any given COURSE
+17
+
+
+1
+Database Management System
+Ali Irfan
+Assistant Professor,
+Department of Computer Science,
+Bahria University Islamabad
+Agenda
+• Introduction to Enhanced ER Model
+1
+2
+2
+Enhanced ER Model
+A model that has resulted from extending the original E-R model with new
+modeling constructs
+New modeling constructs
+New challenges and problems continued to arise over time
+Basic ER Model is sufficient for simple & common business problems
+Enhanced ER Model
+• Super Type, Sub Type
+• Generalization, Specialization
+• Attribute Inheritance
+• Constraints
+3
+4
+3
+EER – Sub Type
+Subgrouping of entities into an entity type that is meaningful to the
+organization
+• Entities should share common attributes or relationships
+• Attributes & Relationships must be different/distinct from other subgroups
+• Generally applied where most of the attributes are common except only few
+• Example: Snake, Sparrow, Pigeon, Cat, Dog
+EER – Super Type
+Generic entity type that has relationship to one or more sub types
+• Holds common or shared attributes to all participating sub types (entity types)
+• Relationships of Super Type to other Entity Types belong to all sub types (entity types)
+• Example: Animal, Vehicle
+5
+6
+4
+Modeling Super Type, Sub Type
+Super Type
+(Shared Attributes)
+Sub Type - 1
+(Unique attributes)
+Sub Type - 2
+(Unique attributes)
+Relationship, all
+instances can participate
+Relationship, specific to Sub
+Type (e.g. Sub Type -1)
+and so on…..
+Generally there is OPTIONAL-ONE relationship between Super Type and Sub Type
+• An instance of Super Type belongs to one instance of any of the participating sub types
+• Each Sub Type maintains a reference with Super Type
+Modeling Super Type, Sub Type
+Super Type
+(Shared Attributes)
+Identifier
+Sub Type - 1
+(Unique attributes)
+SuperTypeIdentifier
+Sub Type - 2
+(Unique attributes)
+SuperTypeIdentifier
+and so on…..
+7
+8
+5
+Modeling Super Type, Sub Type
+Super Type
+Identifier
+(Shared Attributes)
+and so on ……
+Sub Type – 1
+SuperTypeIdentifier
+(Unique attributes)
+Sub Type – 2
+SuperTypeIdentifier
+(Unique attributes)
+Super/Sub Type
+Reg#ColorEngine CCID
+ABC 123White10001
+XYZ 123Red40002
+BAC 123Black15003
+SeatingTrunkVID
+550kg1
+7100kg3
+No. Of WheelsMax LoadVID
+161000kg2
+9
+10
+
+
+Database Management System
+Ali Irfan
+Assistant Professor,
+Department of Computer Science,
+Bahria University Islamabad
+Agenda
+• Generalization & Specialization
+• Technique that helps towards SUPERTYPE/SUBTYPE
+1
+2
+Generalization
+Process of defining a more general entity type from a set of more specialized
+entity types.
+• It’s a bottom-up process
+• Analyze different entities of similar class to identify shared/common
+attributes
+• Group common attributes into one entity type called Super Type
+• Group remaining similar attributes into different entity types called Sub
+Type
+Generalization
+There MUST be at least 2 sub types in order to form Super
+Type/Sub Type relationship
+3
+4
+Generalization
+TABLE
+• Width
+• Height
+• Price
+• DinningCapacity
+CHAIR
+• Width
+• Height
+• Price
+• Type (Revolving/Static)
+BED
+• Width
+• Height
+• Price
+• MattressType
+FURNITURE
+• Width
+• Height
+• Price
+TABLE
+• DinningCapacity
+CHAIR
+• Type
+(Revolving/Static)
+BED
+• MattressType
+Generalization
+5
+6
+Specialization
+Process of defining one or more subtypes of the supertype and forming
+supertype/subtype relationships
+• It’s a top-down process
+• Split entities into multiple lower level entity types
+• New lower level entities inherit features from higher level entities
+• Always applied on single entity
+• If overviewed, can increase complexity
+ANIMAL
+• Title
+• Gender
+• No.OfLegs
+• Length
+• Poison
+• Flying Speed
+• GroundSpeed
+• WaterSpeed
+ANIMAL
+REPTILE BIRD MAMMEL
+Specialization
+7
+8
+Specialization
+SpecializationGeneralization
+• Its bottom-up approach
+• Club the entities having common attributes
+• Helps reduction of schema size
+• Always applied on group of entities
+• Its top-down approach
+• Split an entity into multiple entities, new
+entities inherit attributes from splitted entity
+• Increases schema size
+• Always applied on single entity
+9
+10
+Case
+An hospital is dealing with different types of patients (Outpatients,
+Inpatients/admissions); each patient is designated/assigned a
+doctor who examines patient. For inpatients, there is unique bed
+assigned along with admission and discharge details. However, for
+outpatients, hospital keeps simple visit record along with fee.
+Keeping in mind SUPER TYPE/SUB TYPE, identify minimum number
+of entities and relationships
+Case
+PATIENT
+• PatientID
+• Name
+• Phone
+• Email
+• Type (In, Out)
+OUTPATIENT
+• PatientID (from PATIENT)
+• VisitDate
+• Fee
+INPATIENT
+• PatientID (from PATIENT)
+• DateOfAdmission
+• DateOfDischarge
+• Bed
+DOCTOR
+11
+12
+Case
+Consider an organization has regular employees with specified
+monthly/annual salary for defined or unlimited duration. However,
+organization may hire consultants as well having unique contract and
+billing terms. Some employees work on daily wages as well. All
+employees need to contact accounts department for financial matters;
+however, office space is only provided to regular employees.
+Keeping in mind SUPER TYPE/SUB TYPE, identify minimum number of
+entities and relationships
+Case
+EMPLOYEE
+• EmloyeeID
+• Name
+• Phone
+• Email
+• Type (Regular, Consultant, Wage)
+REGULAREMPLOYEE
+• EmloyeeID (from EMPLOYEE)
+• MonthlySalary
+• Duration
+CONSULTANT
+• EmloyeeID (from EMPLOYEE)
+• ContractNumber
+• RatePerHour
+WAGES
+• EmloyeeID (from EMPLOYEE)
+• DailyWage
+13
+14
+Case
+EMPLOYEE
+REGULAREMPLOYEE CONSULTANT WAGES
+OFFICE
+ACCOUNTS
+15
+
+1
+Database Management System
+Ali Irfan
+Assistant Professor,
+Department of Computer Science,
+Bahria University Islamabad
+Agenda
+• Constraints on SuperType/SubType
+1
+2
+2
+Constraints on Supertype/Subtype
+Constraints allow to capture important business rules that apply
+supertype/subtype relationships
+whether an instance of a supertype
+must also be a member of at least
+one subtype.
+whether an instance of a supertype
+may simultaneously be a member
+of two (or more) subtypes
+Completeness Disjointness
+• Total Specialization
+• Partial Specialization
+• Disjoint Rule
+• Overlap Rule
+Total Specialization Rule
+Each entity instance of a supertype must be a member of some subtype in
+the relationship
+• SuperType has no existence at its own
+• For each newly added instance/record into SuperType, an instance/record should
+also be added into at least of the SubTypes
+• Subtype maintains reference back to Supertype
+3
+4
+3
+PATIENT
+INPATIENT OUTPATIENT
+Indicated by double line from
+Supertype towards circle
+Completeness - Total Specialization
+Completeness – Partial Specialization
+Entity instance of a supertype is allowed not to belong to any subtype
+• SuperType can exist as its own
+• For each newly added instance/record into SuperType, it’s not required to have
+subsequent insertion of subtype
+• However, if any, subtype maintains reference back to Supertype
+5
+6
+4
+VEHICLE
+CAR TRUCK
+Completeness - Partial Specialization
+Disjointness – Disjoint Rule
+An instance of a supertype may not simultaneously be a member of
+two (or more) subtypes.
+• At any given time, an instance may belong to only one subtype
+PATIENT
+INPATIENT OUTPATIENT
+d
+7
+8
+5
+Disjointness – Overlapping Rule
+An instance of a supertype may simultaneously be a member of two (or
+more) subtypes.
+• At any given time, an instance may belong to two or more subtypes
+PART
+MANUFACTURED PURCHASED
+o
+Subtype Discriminator
+An attribute of a supertype whose values determine the target subtype or
+subtypes.
+9
+10
+6
+VEHICLE
+(Type)
+CAR TRUCK
+Generally, an attribute (e.g.
+Type, Cateogry, Class) is added
+in Supertype that denotes
+entity instance
+Discriminator (Disjoint Rule)
+Discriminator (Overlap Rule)
+PART
+(Manufactured,
+Purchased)
+MANUFACTURED PURCHASED
+o
+Type (Result)PurchasedManufactured
+Manufactured OnlyNY
+Purchased OnlyYN
+Manufactured & PurchasedYY
+11
+12
+7
+Summary
+• Insertion in Supertype may result insertion into one or more subtypes
+• Removal of instance from Subtype will result removal of associated Supertype instance
+• Removal of instance from Supertype may result in removal of associated Subtype
+instances (from one ore more subtypes)
+Case
+An ecommerce application entertain customers to place orders for
+either pickup or delivery. Customer can place only one type of
+order at time. Delivery orders are further classified as either direct
+delivery or deliver via postal services (referred to as shipments).
+Pickup and direct delivery orders have similar characteristics.
+However, shipments are dealt differently; company need to share
+shipment information with postal service and in response receive
+unique information that need to be maintained separately by the
+application.
+13
+14
+8
+Case
+An ecommerce application entertain customers to place orders for
+either pickup or delivery. At any given time, customer can place
+different types of orders. Delivery orders are further classified as
+either direct delivery or deliver via postal services (referred to as
+shipments). Pickup and direct delivery orders have similar
+characteristics. However, shipments are dealt differently; company
+need to share shipment information with postal service and in
+response receive unique information that need to be maintained
+separately by the application.
+15
+
+1
+Database Management System
+Ali Irfan
+Assistant Professor,
+Department of Computer Science,
+Bahria University Islamabad
+Agenda
+• Data Type Selection
+• Relational Algebra
+1
+2
+2
+Attribute/Column Data-Type
+Often neglected but it’s very important & critical factor
+Technical Semantic
+• Data is stored on disk in as pages
+• Each data page has a size (8k) in SQL Server
+• More the number of data pages for a
+specific row, more to have to do to achieve
+performance (especially insertion, retrieval)
+• Understand business requirements
+• Always try to choose relevant data type
+• For example, in order to save Address, you
+shouldn’t choose Decimal datatype
+Attribute/Column Data-Type
+DescriptionSize/LengthOracleSQL Server
+Accepts values from 0 – 2551 byteNumber(3)TinyInt
+Accepts value between -2^15 and 2^15 (-32,768, 32,767)2 byteNumber(6)SmallInt
+Accepts value between -2^31 and 2^31 - 14 byteNumber(10)Int
+Accepts value between -2^63 and 2^63 - 18 byteNumber(19)BigInt
+Precision 1-9 = 5 bytes, precision 10-19 = 9 bytes, precision
+20-28 = 13 bytes, precision 29-38 = 17 bytes
+VaryNumber(p,s)Decimal
+-214,748 to +214,7474 bytesNumber(10,4)SmallMoney
+Accepts value between -2^63 and 2^63 - 18 bytesNumber (19,4)Money
+Fixed Length8000 (max)CharChar
+Variable Length8000 (max)VarChar2VarChar
+Fixed Length Unicode4000 (max)NcharNChar
+Variable Length Unicode4000 (max)NVarChar2NVarChar
+3
+4
+3
+Attribute/Column Data-Type
+DescriptionSize/LengthOracleSQL Server
+Store up to minute4 byteDateSmallDateTime
+Stores up to milliseconds8 byteDateDateTime
+Used to hold True/False1 byteChar(1)Bit
+Used to store binary strings or encrypted data--RawVarBinary
+• Consider we need to save following data in a table:
+Attribute/Column Data-Type
+Data
+Name (e.g. Ali Irfan)
+CNIC (e.g. 34104-00541415-1)
+Salary (e.g. 50,000/-)
+NameInUrdu (e.g. علی عرفان)
+DataType
+VarChar(50)
+Char(15)
+SmallMoney
+NVarChar(50)
+5
+6
+
+
+1
+Database Management System
+Ali Irfan
+Assistant Professor,
+Department of Computer Science,
+Bahria University Islamabad
+Agenda
+• Relational Model
+1
+2
+2
+Relational Model
+Data in the form of tables
+Data Structure Data Manipulation Data Integrity
+Data are organized in the
+form of tables, with rows
+and columns.
+Powerful operations (using the
+SQL language) are used to
+manipulate data stored in the
+relations.
+Mechanisms to specify
+business rules that maintain
+the integrity of data when
+they are manipulated.
+Relational Data Structure
+Named two dimensional table of data
+• Consists of named columns and any number of rows
+• Each row represents an entity instance
+GenderDOBEmailPhoneNameID
+M2014-01-01ali@a.com0321-0000000Ali1
+M2010-01-01Irfan@a.com0321-1111111Irfan2
+Attribute/Column Name
+Data/Instances called Rows
+EMPLOYEE(ID, Name, Phone, Email, DOB, Gender)
+3
+4
+3
+Relational Keys
+• How to store & retrieve a row (instance)?
+• Based on data values stored against that specific row
+• Generally an attribute or combination of attributes serve this purpose
+Unique Key
+An attribute in a relation that can hold unique value across all instances/rows
+STUDENT (StudentRollNo, CNIC, Name, Cell, Gender, Address, Email)
+STUDENT (StudentRollNo, CNIC, Name, Cell, Gender, Address, Email)
+Relational Keys
+Candidate Key
+An attribute or a combination of attributes that can be selected to identify an
+instance/row
+• Unique Key can hold Nothing or NULL values but Candidate Key always has value
+Primary Key
+A candidate key selected to identify an instance/row in a table
+STUDENT (StudentRollNo, CNIC, Name, Cell, Gender, Address, Email)
+STUDENT (StudentRollNo, CNIC, Name, Cell, Gender, Address, Email)
+5
+6
+4
+Relational Keys
+• How relationships are identified/realized between tables?
+Foreign Key
+An attribute in a relation that serves as the primary key of another relation in the same
+database.
+EMPLOYEE (EmployeeID, Name, Phone, Cell, Gender, Address, Email)
+DEPARTMENT (DepartmentID, Title, Budget, Address, Fax)
+EMPLOYEE (EmployeeID, Name, Phone, Cell, Gender, Address, Email, DepartmentID)
+Relational Keys
+DEPENDENT (Name, EmployeeID, Age, Relation)
+Composite Primary Key
+Composite Key
+A key that comprises two or more attributes; generally used to formulate Primary Key
+• Used in Weak or Associative Entity Types
+• In practice, composite keys are avoided
+7
+8
+5
+Relational Keys
+PERSON (CNIC, Name, Age, Gender, Phone, Email)
+Natural Primary Key
+Natural Attributes
+Have meaning to business and hold real world data
+Primary key made up of natural attribute(s) is often referred as Natural Key
+Relational Keys
+PERSON (ID, CNIC, Name, Age, Gender, Phone, Email)
+Surrogate Primary Key
+Surrogate Key
+It’s a non-natural attribute added additionally to an entity type to uniquely identify an
+instance in a relation
+• Most widely used practice to define Primary Keys
+• Usually a number that auto-increments when new record/instance is created
+9
+10
+6
+Properties of Relations
+• Each relation in DB has unique name
+• Each attribute/column has unique name
+• Entry at each column/row intersection should be atomic (no multivalued attribute)
+• Each row/instance is unique; no two instances should have same values
+• Sequence of columns (left-right) is insignificant
+• Sequence of rows (top-bottom) is insignificant
+It is always recommended to validate your relation with sample data
+Sample Relation with Data
+Passport NumberCNICAddressCell PhoneDate of BirthPatient NameID
+1-21404-114124-124114-1King’s Palace, Jati Umra0300-42042001960-01-01Mian Sahib1
+2-11211-114123-124144-1Drama Hospital, London0333-00000001965-01-01Bivi Sahiba2
+2-45444-144333-145454-1Dollar Avenue, Dubai0321-44545441960-02-02Daar Sahib3
+000-000001-1Awami Markaz e Sehat0321-78678601990-02-02Awaam Mazloom4
+014-154444-1Awami Markaz e Sehat2010-01-01Gareeb k Bacha5
+2-454544-447111-411541-4Adyala Hospital, Pindi0315-45457111960-03-03Hashim Sahib6
+Consider above data; according to business role, every patient is assumed to Name, DOB, Address, CNIC or B-Form.
+No two patients can overlap for CNIC & Passport Number.
+Identify Primary, Unique & Candidate Keys.
+11
+12
+
+
+Database Management System
+Ali Irfan
+Assistant Professor,
+Department of Computer Science,
+Bahria University Islamabad
+Agenda
+• Generalization & Specialization
+• Technique that helps towards SUPERTYPE/SUBTYPE
+1
+2
+Generalization
+Process of defining a more general entity type from a set of more specialized
+entity types.
+• It’s a bottom-up process
+• Analyze different entities of similar class to identify shared/common
+attributes
+• Group common attributes into one entity type called Super Type
+• Group remaining similar attributes into different entity types called Sub
+Type
+Generalization
+There MUST be at least 2 sub types in order to form Super
+Type/Sub Type relationship
+3
+4
+Generalization
+TABLE
+• Width
+• Height
+• Price
+• DinningCapacity
+CHAIR
+• Width
+• Height
+• Price
+• Type (Revolving/Static)
+BED
+• Width
+• Height
+• Price
+• MattressType
+FURNITURE
+• Width
+• Height
+• Price
+TABLE
+• DinningCapacity
+CHAIR
+• Type
+(Revolving/Static)
+BED
+• MattressType
+Generalization
+5
+6
+Specialization
+Process of defining one or more subtypes of the supertype and forming
+supertype/subtype relationships
+• It’s a top-down process
+• Split entities into multiple lower level entity types
+• New lower level entities inherit features from higher level entities
+• Always applied on single entity
+• If overviewed, can increase complexity
+ANIMAL
+• Title
+• Gender
+• No.OfLegs
+• Length
+• Poison
+• Flying Speed
+• GroundSpeed
+• WaterSpeed
+ANIMAL
+REPTILE BIRD MAMMEL
+Specialization
+7
+8
+Specialization
+SpecializationGeneralization
+• Its bottom-up approach
+• Club the entities having common attributes
+• Helps reduction of schema size
+• Always applied on group of entities
+• Its top-down approach
+• Split an entity into multiple entities, new
+entities inherit attributes from splitted entity
+• Increases schema size
+• Always applied on single entity
+9
+10
+Case
+An hospital is dealing with different types of patients (Outpatients,
+Inpatients/admissions); each patient is designated/assigned a
+doctor who examines patient. For inpatients, there is unique bed
+assigned along with admission and discharge details. However, for
+outpatients, hospital keeps simple visit record along with fee.
+Keeping in mind SUPER TYPE/SUB TYPE, identify minimum number
+of entities and relationships
+Case
+PATIENT
+• PatientID
+• Name
+• Phone
+• Email
+• Type (In, Out)
+OUTPATIENT
+• PatientID (from PATIENT)
+• VisitDate
+• Fee
+INPATIENT
+• PatientID (from PATIENT)
+• DateOfAdmission
+• DateOfDischarge
+• Bed
+DOCTOR
+11
+12
+Case
+Consider an organization has regular employees with specified
+monthly/annual salary for defined or unlimited duration. However,
+organization may hire consultants as well having unique contract and
+billing terms. Some employees work on daily wages as well. All
+employees need to contact accounts department for financial matters;
+however, office space is only provided to regular employees.
+Keeping in mind SUPER TYPE/SUB TYPE, identify minimum number of
+entities and relationships
+Case
+EMPLOYEE
+• EmloyeeID
+• Name
+• Phone
+• Email
+• Type (Regular, Consultant, Wage)
+REGULAREMPLOYEE
+• EmloyeeID (from EMPLOYEE)
+• MonthlySalary
+• Duration
+CONSULTANT
+• EmloyeeID (from EMPLOYEE)
+• ContractNumber
+• RatePerHour
+WAGES
+• EmloyeeID (from EMPLOYEE)
+• DailyWage
+13
+14
+Case
+EMPLOYEE
+REGULAREMPLOYEE CONSULTANT WAGES
+OFFICE
+ACCOUNTS
+15
+
+
+1
+Database Management System
+Ali Irfan
+Assistant Professor,
+Department of Computer Science,
+Bahria University Islamabad
+Agenda
+• Integrity Constraints
+2
+Integrity Constraints
+Integrity Constraints, a way of ensuring that changes made to DB by
+authorized users don’t result into loss of data consistency
+Integrity
+• Complete
+• Bug Free,
+• Consistent
+Constraint
+• Rules,
+• Check Points,
+• Conditions
+OR
+‘Be Right’ and consistent
+Reg# Name Father Name Age
+1 Ismail Ibrahim 22
+2 Daniyal Fazel Rehman 21
+3 Ayesha Mumtaz 20
+4 Kashif Ayyaz 20
+Integrity Constraints
+• Domain Integrity
+• Entity Integrity
+• Referential Integrity
+• Forgein Key Integrity
+3
+Domain Integrity
+Definition of valid set of values for an attribute
+• Domain refers to an attribute or column in a relation/table
+Reg# Name Father Name Age
+1 Ismail Ibrahim 22
+2 Daniyal Fazel Rehman 21
+3 Ayesha Mumtaz 20
+4 Kashif Ayyaz 20
+Domain: Age
+• Can hold number only
+• Always positive ( >0)
+• Less than 100
+Domain Integrity
+• Data Type
+• Number (integer, fraction), String, Date etc.
+• Length/Size
+• Number of characters or digits allowed
+• E.g. Name can be of maximum 30 characters
+• Is NULL allowed
+• Is unique
+• Default Value
+• Range
+• E.g. age should be between 14 and 80.
+Reg# Name Father Name Age
+1 Ismail Ibrahim 22
+2 Daniyal Fazel Rehman 21
+3 Ayesha Mumtaz 20
+4 Kashif 20
+Domain Data Type Size Is NULL In Unique Default Value Range
+Reg# Integer -- No Yes 1 >1
+Name String 30 No No -- --
+Father Name String 30 Yes No -- --
+Age Integer 3 No No 20 14 - 80
+4
+Entity Integrity
+Every relation has primary key and it always has valid value
+• There must be PK
+• It should hold proper value
+Title Author Price
+DBMS Ali Irfan 200
+Networking Faisal Bashir 210
+DBMS Anees 200
+Web Engineering Ali Irfan 200
+Book ID
+1
+2
+3
+4
+Primary Key
+Referential Integrity
+Used to maintain consistency among the rows of two relations
+Customer ID Name Cell Phone
+1 Mushtaq Gujar 0321-0000000
+2 Bhola Pehalwan 0333-0000000
+3 Chota Don 0345-4414111
+Customer ID Order Date Total Amount
+1 2017-01-01 9am 100
+1 2017-01-01 10am 3250
+2 2018-04-05 6pm 1000
+1 2018-04-06 7pm 100
+Trans. ID
+1
+2
+3
+4
+• You can’t delete record from primary
+table (e.g. Customer) if there is matching
+record in secondary table (e.g. Transaction).
+• You can’t change value of primary key if there are
+matching rows in secondary table.
+• You can’t enter a FK value that isn’t present in
+primary table.
+CUSTOMER
+TRANSACTION
+FK
+PK
+PK
+5
+Foreign Key Integrity
+Customer ID Name Cell Phone
+1 Mushtaq Gujar 0321-0000000
+2 Bhola Pehalwan 0333-0000000
+3 Chota Don 0345-4414111
+Customer ID Order Date Total Amount
+1 2017-01-01 9am 100
+1 2017-01-01 10am 3250
+2 2018-04-05 6pm 1000
+1 2018-04-06 7pm 100
+Trans. ID
+1
+2
+3
+4
+• Any change in the value of PK should be
+communicated to all referenced tables (FKs)
+• This is called CASCADE UPDATE
+• If you delete a row in primary table, all
+matching rows should also be deleted in
+related tables.
+• This is called CASCADE DELETE
+CUSTOMER
+TRANSACTION
+FK
+PK
+PK
+4
+4
+4
+4
+Introduction to SQL
+A language that helps to achieve database approach
+• Applicable to almost all RDBMS (e.g. MS SQL, Oracle, MySQL)
+• Syntax is similar across all technologies;
+• Few differences like built-in functions (etc.) are different
+• Lot of built-in functions for the ease of developers
+• Database Developer v/s Database Administrator
+6
+Introduction to SQL
+DDL
+(Data Definition Language)
+DML
+(Data Modification Language)
+DCL
+(Data Control Language)
+TCL
+(Transaction Control Language)
+CREATE
+ALTER
+DROP
+RENAME
+SELECT
+INSERT
+UPDATE
+DELETE
+TRUNCATE
+GRANT
+REVOKE
+COMMIT
+ROLLBACK
+SAVEPOINT
+DDL, DML & TCL is generally used by developers while DCL by Administrators;
+however, things may overlap
+
+1
+Database Management System
+Ali Irfan
+Assistant Professor,
+Department of Computer Science,
+Bahria University Islamabad
+Agenda
+• Mapping EER to Relational Model
+2
+EER to Relational Schema
+• Map Entities
+• Regular & Weak
+• Map Binary Relationships
+• Map Unary Relationships
+• Map Ternary Relationships
+• Map Super/Sub Types
+Map Regular & Weak Entities
+EMPLOYEE
+ID
+Name
+FatherName
+Age
+Salary
+{Skill}
+Address
+(City, State, Street)
+ID Name FatherName Age Salary
+EMPLOYEE
+City State Street
+EMPLOYEE_SKILL
+EmployeeID Skill
+EmployeeID Skill
+ID EmployeeID Skill
+• Name a relation
+• Map simple attributes
+• Identifier becomes PK
+• Map composite attributes
+• Map multivalued attributes
+OR
+PK  FK
+Composite primary key
+Surrogate primary key
+3
+• There is composite primary key
+• Natural Key is inefficient (may be to long) and take space especially
+• Natural primary key may recycle over time
+Regular Entities
+Map Binary Relationships One to One A B
+ROOM
+RoomNo
+Floor
+Type
+Rent
+CUSTOMER
+CNIC
+Name
+Profession
+Age
+RoomNo  CUSTOMER
+ROOM  CNIC
+RoomNo Floor Type Rent
+ROOM
+CNIC Name Profession Age
+CUSTOMER
+RoomNo Floor Type Rent
+ROOM
+CNIC Name Profession Age
+CUSTOMER
+RoomNo CNIC
+4
+Map Binary Relationships One to Many A B
+CUSTOMER
+CustomerNo
+CNIC
+Name
+Address
+Phone
+ORDER
+OrderNo
+Type
+Amount
+Date
+CustomerNo CUSTOMER
+OrderNo Type Amount Date
+ORDER
+CustomerNo CNIC Name Profession Age
+CUSTOMER
+CustomerNo
+Map Binary Relationships Many to Many A B
+STUDENT
+StudentNo
+Name
+Address
+Phone
+COURSE
+CourseNo
+Title
+CreditHours
+ContactHours
+CourseNo Title CreditHours ContactHours
+COURSE
+StudentNo Name Address Phone
+STUDENT
+StudentNo CourseNo
+STUDENT_COURSE
+5
+Map Unary Relationships One to One/Many A
+EMPLOYEE
+EmployeeNo
+Name
+Address
+Phone
+EMPLOYEE
+EmployeeNo
+Name
+Address
+Phone
+EmployeeNo Name Address Phone SupervoiserNo
+EMPLOYEE
+Map Ternary Relationships A C
+B
+STUDENT
+StudentNo
+Name
+Address
+Phone
+COURSE
+CourseNo
+Title
+CreditHours
+ContactHours
+TEACHER
+TeacherNo
+Name
+Designation
+Office
+CourseNo Title CreditHours ContactHours
+COURSE
+StudentNo Name Address Phone
+STUDENT
+TeacherNo Name Designation Office
+TEACHER
+StudentNo TeacherNo CourseNo
+COURSE_PLAN
+6
+Map Super Type/Sub Type
+EMPLOYEE
+EmployeeNo
+Name
+Department
+REGULAR
+MonthlySalary
+ProvidentFund
+CONTRACT
+TotalAmount
+ContractDetails
+DaILYWAGES
+Amount
+No.OfHours
+o
+MonthlySalary ProvidentFund
+REGULAR
+TotalAmount ContractDetails
+CONTRACT
+Amount NoOfHours
+DAILYWAGES
+EmployeeNo Name Department
+EMPLOYEE
+EmployeeNo
+EmployeeNo
+EmployeeNo
+Managing Time Dependent Data
+• Data vary over time
+• Its very critical to maintain history or traceability
+• Who and when product price changed
+• Keep track of you Facebook DP.
+• Account balance at various dates of the year.
+• There are multiple ways to store this information
+• Depends on nature and sensitivity of application/system
+7
+Managing Time Dependent Data
+Always keep track of instance creation/new data input
+Store a date & time
+instance was created
+Who created?
+EMPLOYEE
+EmployeeNo
+Name
+Address
+Phone
+CreatedOnDate
+CreatedByUser
+EmployeeNo Name Address Phone CreatedOnDate CreatedByUser
+Managing Time Dependent Data
+For simple requirement, where only most recent data
+modification track is required
+Store a date & time
+instance was modified
+Who modified?
+EMPLOYEE
+EmployeeNo
+Name
+Address
+Phone
+CreatedDate
+CreatedBy
+EmployeeNo Name Address Phone CreatedDate CreatedBy
+ModifiedDate
+ModifedBy
+ModifiedDate ModifedBy
+8
+Managing Time Dependent Data
+In order to keep history or track of every change made
+in DB, you need to do something more
+Store a date & time
+instance was modified
+Who modified?
+EMPLOYEE
+EmployeeNo
+Name
+Address
+Phone
+CreatedDate
+CreatedBy
+EmployeeNo Name Address Phone CreatedDate CreatedBy
+ModifiedDate
+ModifedBy
+ModifiedDate ModifedBy
+EMPLOYEE_Log
+EmployeeNo
+Name
+Address
+Phone
+CreatedDate
+CreatedBy
+ModifiedDate
+ModifedBy
+EmployeeNo Name Address Phone CreatedDate CreatedBy ModifiedDate ModifedBy
+EMPLOYEE
+EMPLOYEE_LOG
+What changes are made?
+Managing Time Dependent Data
+EmployeeNo Name Address Phone CreatedDate CreatedUser ModifedDate ModifiedUser
+1 Ali Islamabad 123456789 2017-01-04
+9:15am
+Amjad NULL NULL
+2 Irfan Pindi 123456718 2018-01-04
+12:14am
+Amjad NULL NULL
+EmployeeNo Name Address Phone CreatedDate CreatedUser ModifiedDate ModifiedUser
+1 Ali Karachi 123456789 2017-01-04
+9:15am
+Amjad 2017-01-06
+10:30pm
+Usman
+2 Irfan Pindi 123456718 2018-01-04
+12:14am
+Amjad NULL NULL
+Lets assume another user updated Address against employee#1
+
+
+
+
+1
+Database Management System
+Ali Irfan
+Assistant Professor,
+Department of Computer Science,
+Bahria University Islamabad
+Agenda
+• Relational Algebra
+2
+Relational Algebra - Union
+Two relations R and S defines a relation that contains all the
+tuples of R, or S, or both R and S, duplicate tuples being eliminated. R and
+S must be union-compatible.
+• Concatenate tuples from R & S
+• Schema of both relations should match
+• Should have same number and name of attributes in Selection or Projection
+• This property is called Union-Compatible
+Relational Algebra - Union
+σ predicate (R) σ predicate (S)U
+Π attributes(R) Π attributes(S)U
+3
+Relational Algebra - Union
+SELECT *
+FROM R
+SELECT *
+FROM S
+UNION
+ID Name Phone
+1 Ali 321
+2 Irfan 333
+ID Name Phone
+1 Mushtaq 321
+2 Irfan 333
+UNION
+R
+S
+ID Name Phone
+1 Ali 321
+2 Irfan 333
+1 Mushtaq 321
+Relational Algebra - Union
+SELECT ID, Name, Phone
+FROM R
+SELECT ID, Name, Phone
+FROM S
+UNION
+ID Name Phone Email
+1 Ali 321 a@a.com
+2 Irfan 333 b@b.com
+ID Name Phone
+1 Mushtaq 321
+2 Irfan 333
+UNION
+R
+S
+ID Name Phone
+1 Ali 321
+2 Irfan 333
+1 Mushtaq 321
+4
+Relational Algebra - Intersection
+Defines a relation consisting of the set of all tuples that are in both R & S.
+Both R & S must be union-compatible.
+σ predicate (R) σ predicate (S) U
+Π attributes(R) Π attributes(S) U
+SELECT *
+FROM R
+SELECT *
+FROM S
+INTERSECT
+ID Name Phone
+1 Ali 321
+2 Irfan 333
+ID Name Phone
+1 Mushtaq 321
+2 Irfan 333
+R
+S
+ID Name Phone
+2 Irfan 333
+INTERSECT
+Relational Algebra - Intersection
+5
+SELECT ID, Name, Phone
+FROM R
+SELECT ID, Name, Phone
+FROM S
+ID Name Phone Email
+1 Ali 321 a@a.com
+2 Irfan 333 b@b.com
+ID Name Phone
+1 Mushtaq 321
+2 Irfan 333
+R
+S
+ID Name Phone
+2 Irfan 333
+INTERSECT INTERSECT
+Relational Algebra - Intersection
+Relational Algebra – Difference
+Defines a relation consisting of tuples that are in both R but not in S. Both R
+& S must be union-compatible.
+σ predicate (R) σ predicate (S) _
+Π attributes(R) Π attributes(S) _
+6
+SELECT *
+FROM R
+SELECT *
+FROM S
+EXCEPT
+ID Name Phone
+1 Ali 321
+2 Irfan 333
+ID Name Phone
+1 Mushtaq 321
+2 Irfan 333
+R
+S
+ID Name Phone
+1 Ali 321
+Relational Algebra – Difference
+EXCEPT
+SELECT ID, Name, Phone
+FROM R
+SELECT ID, Name, Phone
+FROM S
+ID Name Phone Email
+1 Ali 321 a@a.com
+2 Irfan 333 b@b.com
+ID Name Phone
+1 Mushtaq 321
+2 Irfan 333
+R
+S
+ID Name Phone
+1 Ali 321
+EXCEPT EXCEPT
+Relational Algebra – Difference
+7
+Relational Algebra – Cartesian Product
+Defines a relation that is the concatenation of every tuple of relation R with
+every tuple of relation S. R & S are not required to be union-compatible.
+σ predicate (R) σ predicate (S) X
+SELECT *
+FROM R
+SCROSS JOIN
+ID Name Phone
+1 Ali 321
+2 Irfan 333
+SID Name CPhone
+1 Mushtaq 321
+2 Irfan 333
+R
+S
+Relational Algebra – Cartesian Product
+ID Name Phone
+1 Ali 321
+1 Ali 321
+2 Irfan 333
+2 Irfan 333
+SID Name CPhone
+1 Mushtaq 321
+2 Irfan 333
+1 Mushtaq 321
+2 Irfan 333
+CROSS JOIN
+8
+Relational Algebra – Union All
+Two relations R and S defines a relation that contains all the
+tuples of R, or S, or both R and S, duplicate tuples are not eliminated.
+R and S must be union-compatible.
+Relational Algebra – Union All
+SELECT *
+FROM R
+SELECT *
+FROM S
+UNION ALL
+ID Name Phone
+1 Ali 321
+2 Irfan 333
+ID Name Phone
+1 Mushtaq 321
+2 Irfan 333
+UNION ALL
+R
+S
+ID Name Phone
+1 Ali 321
+2 Irfan 333
+1 Mushtaq 321
+2 Irfan 333
+
+1
+Database Management System
+Ali Irfan
+Assistant Professor,
+Department of Computer Science,
+Bahria University Islamabad
+Agenda
+• Relational Algebra
+2
+Relational Algebra - Intersection
+Defines a relation consisting of the set of all tuples that are in both R & S.
+Both R & S must be union-compatible.
+σ predicate (R) σ predicate (S) U
+Π attributes(R) Π attributes(S) U
+SELECT *
+FROM R
+SELECT *
+FROM S
+INTERSECT
+ID Name Phone
+1 Ali 321
+2 Irfan 333
+ID Name Phone
+1 Mushtaq 321
+2 Irfan 333
+R
+S
+ID Name Phone
+2 Irfan 333
+INTERSECT
+Relational Algebra - Intersection
+3
+SELECT ID, Name, Phone
+FROM R
+SELECT ID, Name, Phone
+FROM S
+ID Name Phone Email
+1 Ali 321 a@a.com
+2 Irfan 333 b@b.com
+ID Name Phone
+1 Mushtaq 321
+2 Irfan 333
+R
+S
+ID Name Phone
+2 Irfan 333
+INTERSECT INTERSECT
+Relational Algebra - Intersection
+Relational Algebra – Difference
+Defines a relation consisting of tuples that are in both R but not in S. Both R
+& S must be union-compatible.
+σ predicate (R) σ predicate (S) _
+Π attributes(R) Π attributes(S) _
+4
+SELECT *
+FROM R
+SELECT *
+FROM S
+EXCEPT
+ID Name Phone
+1 Ali 321
+2 Irfan 333
+ID Name Phone
+1 Mushtaq 321
+2 Irfan 333
+R
+S
+ID Name Phone
+1 Ali 321
+Relational Algebra – Difference
+EXCEPT
+SELECT ID, Name, Phone
+FROM R
+SELECT ID, Name, Phone
+FROM S
+ID Name Phone Email
+1 Ali 321 a@a.com
+2 Irfan 333 b@b.com
+ID Name Phone
+1 Mushtaq 321
+2 Irfan 333
+R
+S
+ID Name Phone
+1 Ali 321
+EXCEPT EXCEPT
+Relational Algebra – Difference
+5
+Relational Algebra – Cartesian Product
+Defines a relation that is the concatenation of every tuple of relation R with
+every tuple of relation S. R & S are not required to be union-compatible.
+σ predicate (R) σ predicate (S) X
+SELECT *
+FROM R
+SCROSS JOIN
+ID Name Phone
+1 Ali 321
+2 Irfan 333
+SID Name CPhone
+1 Mushtaq 321
+2 Irfan 333
+R
+S
+Relational Algebra – Cartesian Product
+ID Name Phone
+1 Ali 321
+1 Ali 321
+2 Irfan 333
+2 Irfan 333
+SID Name CPhone
+1 Mushtaq 321
+2 Irfan 333
+1 Mushtaq 321
+2 Irfan 333
+CROSS JOIN
+6
+Relational Algebra – Union All
+Two relations R and S defines a relation that contains all the
+tuples of R, or S, or both R and S, duplicate tuples are not eliminated.
+R and S must be union-compatible.
+Relational Algebra – Union All
+SELECT *
+FROM R
+SELECT *
+FROM S
+UNION ALL
+ID Name Phone
+1 Ali 321
+2 Irfan 333
+ID Name Phone
+1 Mushtaq 321
+2 Irfan 333
+UNION ALL
+R
+S
+ID Name Phone
+1 Ali 321
+2 Irfan 333
+1 Mushtaq 321
+2 Irfan 333
+
+
+
+1
+Database Management System
+Ali Irfan
+Assistant Professor,
+Department of Computer Science,
+Bahria University Islamabad
+Agenda
+• Anomalies
+• Normalization
+• SQL (Insert, Update, Delete)
+2
+Anomaly
+problem or inconsistency caused by an operation performed on the table
+ID Name Age Branch Code Supervisor
+1 Azfar 23 Computer Science CS Bashir
+2 Raja Basharat 34 Civil Engineering CE Haji Mushtaq
+3 Ali 37 Computer Science CS Bashir
+4 Irfan 27 Electrical Engineering EE Rana Sanaullah
+5 Imran 35 Electrical Engineering EE Rana Sanaullah
+Insert Anomaly Update Anomaly
+Delete Anomaly
+Insert Anomaly
+ID Name Age Branch Code Supervisor
+1 Azfar 23 Computer Science CS Bashir
+2 Raja Basharat 34 Civil Engineering CE Haji Mushtaq
+3 Ali 37 Computer Science CS Bashir
+4 Irfan 27 Electrical Engineering EE Rana Sanaullah
+5 Imran 35 Electrical Engineering EE Rana Sanaullah
+6 Mian Sharif 39 Media Studies MS Abdullah
+A certain data or attributes cannot be inserted into the database
+without the presence of other data
+You can’t add new branch MS, unless a new row with student
+information is added
+3
+Update Anomaly
+ID Name Age Branch Code Supervisor
+1 Azfar 23 Computer Science CS Bashir
+2 Raja Basharat 34 Civil Engineering CE Haji Mushtaq
+3 Ali 37 Computer Science CS Bashir
+4 Irfan 27 Electrical Engineering EE Rana Sanaullah
+5 Imran 35 Electrical Engineering EE Rana Sanaullah
+If we want to update any single piece of data, then we must update all
+other copies
+If you want to update HoD for CS, you must update all the rows for CS
+Delete Anomaly
+ID Name Age Branch Code Supervisor
+1 Azfar 23 Computer Science CS Bashir
+2 Raja Basharat 34 Civil Engineering CE Haji Mushtaq
+3 Ali 37 Computer Science CS Bashir
+4 Irfan 27 Electrical Engineering EE Rana Sanaullah
+5 Imran 35 Electrical Engineering EE Rana Sanaullah
+If we delete any data from the database and any other information
+which is required also gets deleted
+If you want to delete student#2, this will also remove Branch data
+4
+Frist Normal Form (1-NF)
+An attribute/column should have only one value
+• Remove multivalued attributes
+Reg# Name Course
+0001 Donald Trump DBMS, WEB
+0002 Vladimir Putin OS
+0003 Shahid Khaqan HCI, Networking
+Reg# Name Course
+0001 Donald Trump DBMS
+0001 Donald Trump WEB
+0002 Vladimir Putin OS
+0003 Shahid Khaqan HCI
+0003 Shahid Khaqan Networking
+Second Normal Form (2-NF)
+• Relation should in 1-NF
+• No non-prime attribute is dependent of part (subset of the primary key)
+Teacher ID Subject Teacher Age
+0001 DBMS 30
+0001 WEB 30
+0002 OS 45
+0003 HCI 42
+0003 Networking 42
+Teacher ID Teacher Age
+0001 30
+0002 45
+0003 42
+Teacher ID Subject
+0001 DBMS
+0001 WEB
+0002 OS
+0003 HCI
+0003 Networking
+5
+Second Normal Form (2-NF)
+Product ID Product Name Brand
+1 LED TV Apple
+2 LED TV Samsung
+3 Scanner Samsung
+4 Telephone PTCL
+Product ID Name
+1 LED TV
+2 Scanner
+3 Telephone
+ID Product ID Brand ID
+1 1 1
+2 1 2
+3 2 2
+4 3 3
+Brand ID Name
+1 Apple
+2 Samsung
+3 PTCL
+Product Brand
+Product_Brand
+Third Normal Form (3-NF)
+• Relation is in 2-NF
+• No non-prime attribute is dependent on any other non-prime attribute (called Transitive
+Functional Dependency)
+A B
+B A
+B C
+A C
+A determines B  B is dependent on A
+B doesn’t determines A  A is not dependent on B
+B determines C  C is dependent on B
+A determines C because A determines B and B determines C
+A  C is transitive dependency
+6
+Third Normal Form (3-NF)
+Student ID Name Age City District Province
+1 Ch. Nisar 22 Chaklala Rawalpindi Punjab
+2 Hussain Sharif 20 Raiwind Lahore Punjab
+3 Bilawal Saaien 28 Larkana Larkana Sindh
+4 Qasim Khan 22 Mardan Peshawer KPK
+District & Province is determined by City; i.e. District and Province is dependent on City
+Student ID Name Age City ID
+1 Ch. Nisar 22 1
+2 Hussain Sharif 20 2
+3 Bilawal Saaien 28 3
+4 Qasim Khan 22 4
+City ID District Province
+1 Rawalpindi Punjab
+2 Lahore Punjab
+3 Larkana Sindh
+4 Peshawer KPK
+
+

@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pharmacy Management System</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #fff; color: #111; }
+  #sidebar {
+    position: fixed; top: 0; left: 0; width: 220px; height: 100vh;
+    background: #1a1a2e; color: #fff; padding: 20px 0; overflow-y: auto;
+  }
+  #sidebar h2 { font-size: 14px; padding: 0 16px 16px; border-bottom: 1px solid #333; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
+  .actor { padding: 8px 16px; cursor: pointer; font-size: 14px; border-left: 3px solid transparent; }
+  .actor:hover { background: #2a2a4e; }
+  .actor.active { background: #2a2a4e; border-left-color: #4fc3f7; color: #4fc3f7; }
+  .actor-label { font-size: 11px; color: #888; padding: 14px 16px 4px; text-transform: uppercase; letter-spacing: 1px; }
+  #main { margin-left: 220px; padding: 30px; min-height: 100vh; }
+  .view { display: none; }
+  .view.active { display: block; }
+  .page-title { font-size: 22px; font-weight: bold; margin-bottom: 6px; }
+  .page-sub { color: #666; font-size: 14px; margin-bottom: 24px; }
+  .stats { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+  .stat-card { background: #f9f9f9; border: 1px solid #eee; border-radius: 6px; padding: 16px 22px; min-width: 140px; }
+  .stat-card .num { font-size: 28px; font-weight: bold; }
+  .stat-card .lbl { font-size: 13px; color: #666; margin-top: 2px; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+  .tab { padding: 8px 16px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-size: 14px; background: #fff; }
+  .tab:hover { background: #f5f5f5; }
+  .tab.active { background: #1a1a2e; color: #fff; border-color: #1a1a2e; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 24px; }
+  th { background: #1a1a2e; color: #fff; text-align: left; padding: 10px 12px; font-size: 13px; }
+  td { padding: 9px 12px; border-bottom: 1px solid #eee; }
+  tr:hover td { background: #f9f9f9; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+  .badge-green  { background: #e6f4ea; color: #2e7d32; }
+  .badge-blue   { background: #e3f2fd; color: #1565c0; }
+  .badge-red    { background: #fdecea; color: #c62828; }
+  .badge-orange { background: #fff3e0; color: #e65100; }
+  .badge-gray   { background: #f5f5f5; color: #555; }
+  .form-row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+  .form-group { display: flex; flex-direction: column; flex: 1; min-width: 180px; }
+  .form-group label { font-size: 13px; color: #555; margin-bottom: 4px; }
+  .form-group input, .form-group select, .form-group textarea {
+    border: 1px solid #ccc; border-radius: 4px; padding: 8px 10px; font-size: 14px;
+  }
+  .btn { padding: 9px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+  .btn-primary { background: #1a1a2e; color: #fff; }
+  .btn-primary:hover { background: #2a2a4e; }
+  .btn-success { background: #2e7d32; color: #fff; }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+  .alert { padding: 12px 16px; border-radius: 4px; margin-bottom: 16px; font-size: 14px; }
+  .alert-success { background: #e6f4ea; color: #2e7d32; border: 1px solid #a5d6a7; }
+  .alert-error   { background: #fdecea; color: #c62828; border: 1px solid #ef9a9a; }
+  .alert-warning { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; }
+  .loading { color: #888; font-style: italic; padding: 20px 0; }
+  .low-stock td { background: #fff8e1 !important; }
+  hr { border: none; border-top: 1px solid #eee; margin: 20px 0; }
+  .section-title { font-size: 15px; font-weight: bold; margin-bottom: 12px; color: #333; }
+  code { background: #f0f4f8; padding: 2px 6px; border-radius: 3px; font-size: 13px; }
+  .ra-box { background: #f0f4f8; border-left: 4px solid #1a1a2e; padding: 12px 16px; margin-bottom: 10px; font-family: monospace; font-size: 14px; color: #1a252f; }
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <h2>PharmaDB</h2>
+  <div class="actor-label">Actors</div>
+  <div class="actor active" onclick="nav('doctor')">🩺 Doctor</div>
+  <div class="actor" onclick="nav('pharmacist')">💊 Pharmacist</div>
+  <div class="actor" onclick="nav('customer')">👤 Customer</div>
+  <div class="actor" onclick="nav('admin')">🏥 Admin</div>
+  <div class="actor-label">System</div>
+  <div class="actor" onclick="nav('inventory')">📦 Inventory</div>
+  <div class="actor" onclick="nav('billing')">🧾 Billing</div>
+  <div class="actor" onclick="nav('timedep')">🕓 Time Dependency</div>
+  <div class="actor" onclick="nav('queries')">∑ Rel. Algebra</div>
+</div>
+
+<div id="main">
+
+  <!-- ══ DOCTOR ══════════════════════════════════════════════ -->
+  <div id="view-doctor" class="view active">
+    <div class="page-title">🩺 Doctor Panel</div>
+    <div class="page-sub">Issue prescriptions for patients</div>
+    <div class="stats" id="doc-stats"><div class="loading">Loading...</div></div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab(this,'d-list')">All Prescriptions</div>
+      <div class="tab" onclick="switchTab(this,'d-new')">New Prescription</div>
+    </div>
+
+    <div id="d-list" class="tab-content active">
+      <table><thead><tr><th>Rx#</th><th>Doctor</th><th>Customer</th><th>Medicine(s)</th><th>Date</th><th>Status</th></tr></thead>
+      <tbody id="d-rx-tbody"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody></table>
+    </div>
+
+    <div id="d-new" class="tab-content">
+      <div id="d-alert"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Doctor</label><select id="f-doctor"></select></div>
+        <div class="form-group"><label>Customer</label><select id="f-customer"></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Medicine</label><select id="f-medicine"></select></div>
+        <div class="form-group"><label>Quantity</label><input type="number" id="f-qty" value="1" min="1" max="10"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Dosage Instructions</label><input type="text" id="f-dosage" placeholder="e.g. 1 tablet twice daily after meals"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Prescribed Date</label><input type="date" id="f-date"></div>
+        <div class="form-group"><label>Expiry Date</label><input type="date" id="f-expiry"></div>
+      </div>
+      <button class="btn btn-primary" onclick="issuePrescription()">Issue Prescription → SQL Server</button>
+    </div>
+  </div>
+
+  <!-- ══ PHARMACIST ══════════════════════════════════════════ -->
+  <div id="view-pharmacist" class="view">
+    <div class="page-title">💊 Pharmacist Panel</div>
+    <div class="page-sub">Dispense pending prescriptions</div>
+    <div class="stats" id="ph-stats"><div class="loading">Loading...</div></div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab(this,'ph-queue')">Dispense Queue</div>
+      <div class="tab" onclick="switchTab(this,'ph-meds')">Medicine List</div>
+    </div>
+
+    <div id="ph-queue" class="tab-content active">
+      <div id="ph-alert"></div>
+      <table><thead><tr><th>Rx#</th><th>Customer</th><th>Doctor</th><th>Medicine(s)</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody id="ph-tbody"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody></table>
+    </div>
+
+    <div id="ph-meds" class="tab-content">
+      <table><thead><tr><th>Medicine</th><th>Category</th><th>Type</th><th>Price</th><th>Stock</th><th>Status</th></tr></thead>
+      <tbody id="ph-med-tbody"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody></table>
+    </div>
+  </div>
+
+  <!-- ══ CUSTOMER ════════════════════════════════════════════ -->
+  <div id="view-customer" class="view">
+    <div class="page-title">👤 Customer Portal</div>
+    <div class="page-sub">View prescriptions and payment history</div>
+    <div class="form-row" style="max-width:300px;margin-bottom:20px">
+      <div class="form-group"><label>Select Customer</label>
+        <select id="cust-select" onchange="loadCustomer()"></select>
+      </div>
+    </div>
+    <div class="stats" id="cust-stats"></div>
+    <div class="section-title">My Prescriptions</div>
+    <table><thead><tr><th>Rx#</th><th>Doctor</th><th>Medicine(s)</th><th>Date</th><th>Status</th></tr></thead>
+    <tbody id="cust-rx-tbody"></tbody></table>
+    <div class="section-title">My Payments</div>
+    <table><thead><tr><th>Invoice#</th><th>Amount</th><th>Method</th><th>Date</th><th>Status</th></tr></thead>
+    <tbody id="cust-pay-tbody"></tbody></table>
+  </div>
+
+  <!-- ══ ADMIN ═══════════════════════════════════════════════ -->
+  <div id="view-admin" class="view">
+    <div class="page-title">🏥 Admin Panel</div>
+    <div class="page-sub">Manage people and suppliers</div>
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab(this,'adm-docs')">Doctors</div>
+      <div class="tab" onclick="switchTab(this,'adm-ph')">Pharmacists</div>
+      <div class="tab" onclick="switchTab(this,'adm-supp')">Suppliers</div>
+      <div class="tab" onclick="switchTab(this,'adm-add')">Add Person</div>
+    </div>
+    <div id="adm-docs" class="tab-content active">
+      <table><thead><tr><th>Name</th><th>Specialization</th><th>License No</th><th>Expiry</th><th>Status</th></tr></thead>
+      <tbody id="adm-doc-tbody"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody></table>
+    </div>
+    <div id="adm-ph" class="tab-content">
+      <table><thead><tr><th>Name</th><th>License No</th><th>Expiry</th><th>Status</th></tr></thead>
+      <tbody id="adm-ph-tbody"><tr><td colspan="4" class="loading">Loading...</td></tr></tbody></table>
+    </div>
+    <div id="adm-supp" class="tab-content">
+      <table><thead><tr><th>Supplier</th><th>Contact Person</th><th>Phone</th><th>Contract End</th><th>Status</th></tr></thead>
+      <tbody id="adm-supp-tbody"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody></table>
+    </div>
+    <div id="adm-add" class="tab-content">
+      <div id="adm-alert"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Full Name</label><input type="text" id="adm-name" placeholder="Full name"></div>
+        <div class="form-group"><label>Role</label>
+          <select id="adm-role"><option>Customer</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Phone</label><input type="text" id="adm-phone" placeholder="0321-XXXXXXX"></div>
+        <div class="form-group"><label>Email</label><input type="email" id="adm-email"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Address</label><input type="text" id="adm-addr"></div>
+      </div>
+      <button class="btn btn-primary" onclick="addPerson()">Add to Database → SQL Server</button>
+    </div>
+  </div>
+
+  <!-- ══ INVENTORY ═══════════════════════════════════════════ -->
+  <div id="view-inventory" class="view">
+    <div class="page-title">📦 Inventory</div>
+    <div class="page-sub">Live stock levels from database</div>
+    <div id="inv-low-alert"></div>
+    <table><thead><tr><th>Medicine</th><th>Category</th><th>Stock</th><th>Reorder Lvl</th><th>Expiry</th><th>Last Restocked</th><th>Updated By</th><th>Status</th></tr></thead>
+    <tbody id="inv-tbody"><tr><td colspan="8" class="loading">Loading...</td></tr></tbody></table>
+  </div>
+
+  <!-- ══ BILLING ═════════════════════════════════════════════ -->
+  <div id="view-billing" class="view">
+    <div class="page-title">🧾 Billing & Payments</div>
+    <div class="page-sub">All invoices from database</div>
+    <div class="stats" id="bill-stats"></div>
+    <table><thead><tr><th>Invoice#</th><th>Customer</th><th>Subtotal</th><th>Total</th><th>Method</th><th>Date</th><th>Status</th></tr></thead>
+    <tbody id="bill-tbody"><tr><td colspan="7" class="loading">Loading...</td></tr></tbody></table>
+  </div>
+
+  <!-- ══ TIME DEPENDENCY ════════════════════════════════════ -->
+  <div id="view-timedep" class="view">
+    <div class="page-title">🕓 Time Dependency</div>
+    <div class="page-sub">Level 2 temporal tracking — who changed what and when</div>
+    <div class="alert alert-success">
+      This database uses <strong>Level 2 Time Dependency</strong>. Tables have <code>created_at</code>, <code>updated_at</code>, and <code>updated_by</code> columns. When you dispense a prescription, <code>updated_at</code> and <code>updated_by</code> are set automatically by the SQL UPDATE statement.
+    </div>
+    <div class="section-title">Recent Prescription Updates (from DB)</div>
+    <table><thead><tr><th>Rx#</th><th>Status</th><th>Prescribed</th><th>Dispensed At</th><th>Updated By</th></tr></thead>
+    <tbody id="td-tbody"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody></table>
+    <hr>
+    <div class="section-title">Time Dependency Levels — Reference</div>
+    <table>
+      <thead><tr><th>Level</th><th>Tracks</th><th>Columns</th><th>In This DB</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Level 1</strong></td><td>When row was created</td><td><code>created_at</code></td><td><span class="badge badge-green">Yes</span></td></tr>
+        <tr><td><strong>Level 2</strong></td><td>Most recent modification</td><td><code>updated_at, updated_by</code></td><td><span class="badge badge-green">Yes — main method</span></td></tr>
+        <tr><td><strong>Level 3</strong></td><td>Full history of every change</td><td>Separate LOG table</td><td><span class="badge badge-gray">Not implemented</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══ QUERIES ═════════════════════════════════════════════ -->
+  <div id="view-queries" class="view">
+    <div class="page-title">∑ Relational Algebra</div>
+    <div class="page-sub">Assignment queries — live results from SQL Server</div>
+
+    <div class="section-title">Query 1 — Dispensed Prescriptions</div>
+    <div class="ra-box">
+      π<sub>DoctorName, CustomerName, PharmacistName, PrescribedDate</sub><br>
+      (σ<sub>status='Dispensed'</sub>(PRESCRIPTION) ⋈ DOCTOR ⋈ PERSON ⋈ CUSTOMER ⋈ PHARMACIST)
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="runQuery(1)">▶ Run Query 1</button>
+    <div id="q1-result" style="margin-top:14px"></div>
+
+    <hr>
+    <div class="section-title">Query 2 — Revenue by Payment Method</div>
+    <div class="ra-box">
+      π<sub>payment_method, COUNT(*), SUM(amount_paid)</sub><br>
+      (σ<sub>status='Completed'</sub>(PAYMENT ⋈ INVOICE)) GROUP BY payment_method
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="runQuery(2)">▶ Run Query 2</button>
+    <div id="q2-result" style="margin-top:14px"></div>
+
+    <hr>
+    <div class="section-title">Query 3 — Low Stock Medicines</div>
+    <div class="ra-box">
+      π<sub>MedicineName, CurrentStock, ReorderLevel, Supplier</sub><br>
+      (σ<sub>quantity &lt; monitor_level</sub>(INVENTORY ⋈ MEDICINE ⋈ PURCHASE_ORDER ⋈ SUPPLIER))
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="runQuery(3)">▶ Run Query 3</button>
+    <div id="q3-result" style="margin-top:14px"></div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+const API = 'http://localhost:3000/api';
+
+// ── UTILS ─────────────────────────────────────────────────────
+async function apiFetch(path, opts) {
+  const r = await fetch(API + path, opts);
+  return r.json();
+}
+
+function badge(s) {
+  const map = { Dispensed:'badge-green', Pending:'badge-blue', Expired:'badge-red',
+    Cancelled:'badge-red', Ordered:'badge-orange', Received:'badge-green',
+    Completed:'badge-green', Active:'badge-green', OTC:'badge-green',
+    Prescription:'badge-blue', Controlled:'badge-red' };
+  return `<span class="badge ${map[s]||'badge-gray'}">${s}</span>`;
+}
+
+function fmt(d) { return d ? new Date(d).toLocaleDateString('en-PK') : '—'; }
+function fmtDT(d) { return d ? new Date(d).toLocaleString('en-PK') : '—'; }
+function showAlert(id, msg, type='success') {
+  const el = document.getElementById(id);
+  el.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+  setTimeout(() => el.innerHTML = '', 5000);
+}
+
+// ── NAV ───────────────────────────────────────────────────────
+const loaders = {};
+function nav(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.actor').forEach(a => a.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (!loaders[name]) { loaders[name] = true; loadView(name); }
+}
+
+function switchTab(el, tid) {
+  el.parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const view = el.closest('.view');
+  view.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById(tid).classList.add('active');
+}
+
+// ── LOAD VIEWS ────────────────────────────────────────────────
+async function loadView(name) {
+  switch(name) {
+    case 'doctor':     await Promise.all([loadStats(), loadPrescriptions(), loadDoctorsSelect(), loadCustomersSelect(), loadMedSelect()]); break;
+    case 'pharmacist': await Promise.all([loadStats(), loadPrescriptions(), loadMedicines()]); break;
+    case 'customer':   await loadCustomersDropdown(); break;
+    case 'admin':      await Promise.all([loadDoctorsTable(), loadPharmacistsTable(), loadSuppliersTable()]); break;
+    case 'inventory':  await loadInventory(); break;
+    case 'billing':    await loadBilling(); break;
+    case 'timedep':    await loadTimeDep(); break;
+  }
+}
+
+// ── STATS ─────────────────────────────────────────────────────
+async function loadStats() {
+  const res = await apiFetch('/stats');
+  if (!res.ok) return;
+  const d = res.data;
+  document.getElementById('doc-stats').innerHTML = `
+    <div class="stat-card"><div class="num">${d.totalRx}</div><div class="lbl">Total Prescriptions</div></div>
+    <div class="stat-card"><div class="num">${d.dispensed}</div><div class="lbl">Dispensed</div></div>
+    <div class="stat-card"><div class="num">${d.pending}</div><div class="lbl">Pending</div></div>
+    <div class="stat-card"><div class="num">${d.expired}</div><div class="lbl">Expired</div></div>`;
+  document.getElementById('ph-stats').innerHTML = `
+    <div class="stat-card"><div class="num">${d.pending}</div><div class="lbl">Pending to Dispense</div></div>
+    <div class="stat-card"><div class="num">${d.totalMeds}</div><div class="lbl">Medicines</div></div>
+    <div class="stat-card"><div class="num" style="${d.lowStock>0?'color:#c62828':''}">${d.lowStock}</div><div class="lbl">Low Stock</div></div>
+    <div class="stat-card"><div class="num">${d.suppliers}</div><div class="lbl">Suppliers</div></div>`;
+}
+
+// ── PRESCRIPTIONS ─────────────────────────────────────────────
+async function loadPrescriptions() {
+  const res = await apiFetch('/prescriptions');
+  if (!res.ok) return;
+  const rows = res.data;
+  document.getElementById('d-rx-tbody').innerHTML = rows.map(r =>
+    `<tr><td>RX-${String(r.prescription_id).padStart(3,'0')}</td>
+     <td>${r.doctor_name}</td><td>${r.customer_name}</td>
+     <td>${r.medicines||'—'}</td><td>${fmt(r.prescribed_date)}</td>
+     <td>${badge(r.status)}</td></tr>`
+  ).join('') || '<tr><td colspan="6">No records</td></tr>';
+
+  const pending = rows.filter(r => r.status === 'Pending');
+  document.getElementById('ph-tbody').innerHTML = pending.map(r =>
+    `<tr><td>RX-${String(r.prescription_id).padStart(3,'0')}</td>
+     <td>${r.customer_name}</td><td>${r.doctor_name}</td>
+     <td>${r.medicines||'—'}</td><td>${badge(r.status)}</td>
+     <td><select id="ph-sel-${r.prescription_id}" style="border:1px solid #ccc;padding:3px 6px;border-radius:4px;font-size:12px" id="ph-pharm-${r.prescription_id}"></select>
+         <button class="btn btn-success btn-sm" onclick="dispense(${r.prescription_id})" style="margin-left:6px">Dispense</button></td></tr>`
+  ).join('') || '<tr><td colspan="6" style="color:#888;text-align:center">No pending prescriptions</td></tr>';
+
+  // populate pharmacist selects
+  const phRes = await apiFetch('/pharmacists');
+  if (phRes.ok) {
+    pending.forEach(r => {
+      const sel = document.getElementById(`ph-sel-${r.prescription_id}`);
+      if (sel) sel.innerHTML = phRes.data.map(p => `<option value="${p.pharmacist_id}">${p.name}</option>`).join('');
+    });
+  }
+}
+
+async function issuePrescription() {
+  const body = {
+    doctor_id:      document.getElementById('f-doctor').value,
+    customer_id:    document.getElementById('f-customer').value,
+    medicine_id:    document.getElementById('f-medicine').value,
+    quantity:       parseInt(document.getElementById('f-qty').value),
+    dosage:         document.getElementById('f-dosage').value || 'As directed',
+    prescribed_date: document.getElementById('f-date').value,
+    expiry_date:    document.getElementById('f-expiry').value,
+  };
+  if (!body.doctor_id || !body.customer_id || !body.medicine_id) {
+    return showAlert('d-alert', '⚠️ Please fill all fields', 'error');
+  }
+  const res = await apiFetch('/prescriptions', {
+    method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
+  });
+  if (res.ok) {
+    showAlert('d-alert', `✅ Prescription RX-${String(res.data.prescription_id).padStart(3,'0')} inserted into SQL Server. created_at = ${new Date().toLocaleString()}`);
+    loaders['doctor'] = false; loaders['pharmacist'] = false;
+    await loadPrescriptions(); await loadStats();
+  } else {
+    showAlert('d-alert', '❌ Error: ' + res.error, 'error');
+  }
+}
+
+async function dispense(rxId) {
+  const sel = document.getElementById(`ph-sel-${rxId}`);
+  const pharmacist_id = sel ? sel.value : 1;
+  const res = await apiFetch(`/prescriptions/${rxId}/dispense`, {
+    method: 'PATCH', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ pharmacist_id })
+  });
+  if (res.ok) {
+    showAlert('ph-alert', `✅ RX-${String(rxId).padStart(3,'0')} dispensed. SQL UPDATE ran: status='Dispensed', updated_at=${new Date().toLocaleString()}, updated_by='Pharmacist'`);
+    await loadPrescriptions(); await loadStats();
+  } else {
+    showAlert('ph-alert', '❌ ' + res.error, 'error');
+  }
+}
+
+// ── DROPDOWNS ─────────────────────────────────────────────────
+async function loadDoctorsSelect() {
+  const res = await apiFetch('/doctors');
+  if (!res.ok) return;
+  document.getElementById('f-doctor').innerHTML = res.data.map(d =>
+    `<option value="${d.doctor_id}">${d.name} (${d.specialization})</option>`).join('');
+}
+
+async function loadCustomersSelect() {
+  const res = await apiFetch('/customers');
+  if (!res.ok) return;
+  document.getElementById('f-customer').innerHTML = res.data.map(c =>
+    `<option value="${c.customer_id}">${c.name}</option>`).join('');
+}
+
+async function loadMedSelect() {
+  const res = await apiFetch('/medicines');
+  if (!res.ok) return;
+  const presc = res.data.filter(m => m.medicine_type !== 'OTC');
+  document.getElementById('f-medicine').innerHTML = presc.map(m =>
+    `<option value="${m.medicine_id}">${m.name} — Rs.${m.unit_price} (${m.medicine_type})</option>`).join('');
+}
+
+// ── MEDICINES ─────────────────────────────────────────────────
+async function loadMedicines() {
+  const res = await apiFetch('/medicines');
+  if (!res.ok) return;
+  document.getElementById('ph-med-tbody').innerHTML = res.data.map(m =>
+    `<tr><td>${m.name}</td><td>${m.category}</td><td>${badge(m.medicine_type)}</td>
+     <td>Rs.${m.unit_price}</td>
+     <td style="${m.stock < m.monitor_level ? 'color:#c62828;font-weight:bold' : ''}">${m.stock}</td>
+     <td>${m.stock < m.monitor_level ? badge('Expired').replace('Expired','Low Stock') : badge('Completed').replace('Completed','OK')}</td></tr>`
+  ).join('');
+}
+
+// ── CUSTOMER VIEW ─────────────────────────────────────────────
+async function loadCustomersDropdown() {
+  const res = await apiFetch('/customers');
+  if (!res.ok) return;
+  document.getElementById('cust-select').innerHTML = res.data.map(c =>
+    `<option value="${c.customer_id}">${c.name}</option>`).join('');
+  loadCustomer();
+}
+
+async function loadCustomer() {
+  const cid = document.getElementById('cust-select').value;
+  if (!cid) return;
+  const [rxRes, payRes, custRes] = await Promise.all([
+    apiFetch(`/customers/${cid}/prescriptions`),
+    apiFetch(`/customers/${cid}/payments`),
+    apiFetch('/customers')
+  ]);
+  const cust = custRes.ok ? custRes.data.find(c => c.customer_id == cid) : null;
+  const rx = rxRes.ok ? rxRes.data : [];
+  const pay = payRes.ok ? payRes.data : [];
+  const total = pay.reduce((s, p) => s + p.amount_paid, 0);
+
+  document.getElementById('cust-stats').innerHTML = `
+    <div class="stat-card"><div class="num">${rx.length}</div><div class="lbl">Prescriptions</div></div>
+    <div class="stat-card"><div class="num">${rx.filter(r=>r.status==='Dispensed').length}</div><div class="lbl">Dispensed</div></div>
+    <div class="stat-card"><div class="num">Rs.${total}</div><div class="lbl">Total Spent</div></div>
+    <div class="stat-card"><div class="num">${cust?.loyalty_points||0}</div><div class="lbl">Loyalty Points</div></div>`;
+
+  document.getElementById('cust-rx-tbody').innerHTML = rx.length
+    ? rx.map(r=>`<tr><td>RX-${String(r.prescription_id).padStart(3,'0')}</td><td>${r.doctor_name}</td><td>${r.medicines||'—'}</td><td>${fmt(r.prescribed_date)}</td><td>${badge(r.status)}</td></tr>`).join('')
+    : '<tr><td colspan="5" style="color:#888;text-align:center">No prescriptions</td></tr>';
+
+  document.getElementById('cust-pay-tbody').innerHTML = pay.length
+    ? pay.map(p=>`<tr><td>INV-${String(p.invoice_id).padStart(3,'0')}</td><td>Rs.${p.amount_paid}</td><td>${p.payment_method}</td><td>${fmt(p.payment_date)}</td><td>${badge(p.payment_status)}</td></tr>`).join('')
+    : '<tr><td colspan="5" style="color:#888;text-align:center">No payments</td></tr>';
+}
+
+// ── ADMIN TABLES ──────────────────────────────────────────────
+async function loadDoctorsTable() {
+  const res = await apiFetch('/doctors');
+  if (!res.ok) return;
+  document.getElementById('adm-doc-tbody').innerHTML = res.data.map(d =>
+    `<tr><td>${d.name}</td><td>${d.specialization}</td><td>${d.license_no}</td>
+     <td>${fmt(d.license_expiry)}</td><td>${badge(d.is_active?'Active':'Inactive')}</td></tr>`
+  ).join('');
+}
+async function loadPharmacistsTable() {
+  const res = await apiFetch('/pharmacists');
+  if (!res.ok) return;
+  document.getElementById('adm-ph-tbody').innerHTML = res.data.map(p =>
+    `<tr><td>${p.name}</td><td>${p.license_no}</td><td>${fmt(p.license_expiry)}</td><td>${badge(p.is_active?'Active':'Inactive')}</td></tr>`
+  ).join('');
+}
+async function loadSuppliersTable() {
+  const res = await apiFetch('/suppliers');
+  if (!res.ok) return;
+  document.getElementById('adm-supp-tbody').innerHTML = res.data.map(s =>
+    `<tr><td>${s.name}</td><td>${s.contact_person}</td><td>${s.phone}</td>
+     <td>${s.contract_end ? fmt(s.contract_end) : 'Ongoing'}</td>
+     <td>${badge(s.is_active?'Active':'Inactive')}</td></tr>`
+  ).join('');
+}
+
+async function addPerson() {
+  const body = {
+    name:    document.getElementById('adm-name').value,
+    role:    document.getElementById('adm-role').value,
+    phone:   document.getElementById('adm-phone').value,
+    email:   document.getElementById('adm-email').value,
+    address: document.getElementById('adm-addr').value,
+  };
+  if (!body.name || !body.phone) return showAlert('adm-alert','⚠️ Name and phone required','error');
+  const res = await apiFetch('/persons', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  if (res.ok) {
+    showAlert('adm-alert', `✅ ${body.name} added to PERSON table (person_id=${res.data.person_id}) + ${body.role} table. created_at=${new Date().toLocaleString()}, is_active=1`);
+    document.getElementById('adm-name').value = '';
+    document.getElementById('adm-phone').value = '';
+  } else {
+    showAlert('adm-alert','❌ '+res.error,'error');
+  }
+}
+
+// ── INVENTORY ─────────────────────────────────────────────────
+async function loadInventory() {
+  const res = await apiFetch('/inventory');
+  if (!res.ok) return;
+  const low = res.data.filter(i => i.is_low);
+  if (low.length) {
+    document.getElementById('inv-low-alert').innerHTML = `<div class="alert alert-warning">⚠️ ${low.length} medicine(s) below reorder level: ${low.map(i=>i.medicine_name).join(', ')}</div>`;
+  }
+  document.getElementById('inv-tbody').innerHTML = res.data.map(i =>
+    `<tr${i.is_low?' class="low-stock"':''}>
+      <td>${i.medicine_name}</td><td>${i.category}</td>
+      <td style="${i.is_low?'color:#c62828;font-weight:bold':''}">${i.quantity}</td>
+      <td>${i.monitor_level}</td><td>${fmt(i.expiry_date)}</td>
+      <td>${i.last_restocked ? fmt(i.last_restocked) : '—'}</td>
+      <td>${i.updated_by}</td>
+      <td>${i.is_low ? badge('Expired').replace('Expired','Low Stock') : badge('Completed').replace('Completed','OK')}</td>
+    </tr>`
+  ).join('');
+}
+
+// ── BILLING ───────────────────────────────────────────────────
+async function loadBilling() {
+  const res = await apiFetch('/billing');
+  if (!res.ok) return;
+  const total = res.data.reduce((s,b)=>s+(b.amount_paid||0),0);
+  const cash  = res.data.filter(b=>b.payment_method==='Cash').reduce((s,b)=>s+b.amount_paid,0);
+  const card  = res.data.filter(b=>b.payment_method==='Card').reduce((s,b)=>s+b.amount_paid,0);
+  const online= res.data.filter(b=>b.payment_method==='Online').reduce((s,b)=>s+b.amount_paid,0);
+  document.getElementById('bill-stats').innerHTML = `
+    <div class="stat-card"><div class="num">Rs.${total}</div><div class="lbl">Total Revenue</div></div>
+    <div class="stat-card"><div class="num">${res.data.length}</div><div class="lbl">Invoices</div></div>
+    <div class="stat-card"><div class="num">Rs.${cash}</div><div class="lbl">Cash</div></div>
+    <div class="stat-card"><div class="num">Rs.${card}</div><div class="lbl">Card</div></div>
+    <div class="stat-card"><div class="num">Rs.${online}</div><div class="lbl">Online</div></div>`;
+  document.getElementById('bill-tbody').innerHTML = res.data.map(b =>
+    `<tr><td>INV-${String(b.invoice_id).padStart(3,'0')}</td><td>${b.customer_name||'Walk-in'}</td>
+     <td>Rs.${b.subtotal}</td><td>Rs.${b.total_amount}</td>
+     <td>${b.payment_method||'—'}</td><td>${fmt(b.issued_at)}</td>
+     <td>${badge(b.payment_status||'Completed')}</td></tr>`
+  ).join('');
+}
+
+// ── TIME DEPENDENCY ───────────────────────────────────────────
+async function loadTimeDep() {
+  const res = await apiFetch('/prescriptions');
+  if (!res.ok) return;
+  const dispensed = res.data.filter(r => r.dispensed_at);
+  document.getElementById('td-tbody').innerHTML = dispensed.slice(0,10).map(r =>
+    `<tr><td>RX-${String(r.prescription_id).padStart(3,'0')}</td>
+     <td>${badge(r.status)}</td><td>${fmt(r.prescribed_date)}</td>
+     <td>${fmtDT(r.dispensed_at)}</td><td>${r.pharmacist_name||'—'}</td></tr>`
+  ).join('') || '<tr><td colspan="5" style="color:#888;text-align:center">No dispensed records yet</td></tr>';
+}
+
+// ── QUERIES ───────────────────────────────────────────────────
+const qCols = {
+  1: ['DoctorName','Specialization','CustomerName','PharmacistName','PrescribedDate','DispensedAt'],
+  2: ['PaymentMethod','TotalTransactions','TotalRevenue','AvgValue'],
+  3: ['MedicineName','Category','CurrentStock','ReorderLevel','ExpiryDate','Supplier','SupplierPhone','LastOrder']
+};
+async function runQuery(n) {
+  const el = document.getElementById(`q${n}-result`);
+  el.innerHTML = '<div class="loading">Running query on SQL Server...</div>';
+  const res = await apiFetch(`/query/${n}`);
+  if (!res.ok) { el.innerHTML = `<div class="alert alert-error">❌ ${res.error}</div>`; return; }
+  const cols = qCols[n];
+  el.innerHTML = `<table>
+    <thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead>
+    <tbody>${res.data.map(row =>
+      `<tr>${cols.map(c=>`<td>${row[c]!=null?row[c]:'—'}</td>`).join('')}</tr>`
+    ).join('')}</tbody>
+  </table>`;
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+const today = new Date().toISOString().split('T')[0];
+const exp = new Date(); exp.setMonth(exp.getMonth()+3);
+document.getElementById('f-date').value = today;
+document.getElementById('f-expiry').value = exp.toISOString().split('T')[0];
+loadView('doctor');
+</script>
+</body>
+</html>
