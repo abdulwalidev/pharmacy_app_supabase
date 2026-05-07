@@ -436,28 +436,34 @@
   <div id="view-timedep" class="view">
     <div class="page-hdr">
       <h1>🕓 Time Dependency</h1>
-      <p>Level 2 temporal tracking — who changed what and when</p>
+      <p>Full temporal tracking — Levels 1, 2 &amp; 3 implemented</p>
     </div>
-    <div class="alert alert-info">
-      This database implements <strong>Level 2 Time Dependency</strong>. Tables track <code>created_at</code>, <code>updated_at</code>, and <code>updated_by</code>.
-      When a prescription is dispensed, <code>updated_at = NOW()</code> and <code>updated_by = 'Pharmacist'</code> are recorded automatically.
+
+    <div class="section-title">Time Dependency Levels</div>
+    <div class="tbl-wrap" style="margin-bottom:28px">
+      <table>
+        <thead><tr><th>Level</th><th>Tracks</th><th>How</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Level 1</strong></td><td>Row creation time</td><td><code>created_at DEFAULT NOW()</code></td><td><span class="badge badge-green">Implemented</span></td></tr>
+          <tr><td><strong>Level 2</strong></td><td>Last modification</td><td><code>updated_at, updated_by</code></td><td><span class="badge badge-green">Implemented</span></td></tr>
+          <tr><td><strong>Level 3</strong></td><td>Full change history</td><td><code>PRESCRIPTION_AUDIT_LOG</code> + trigger</td><td><span class="badge badge-green">Implemented</span></td></tr>
+        </tbody>
+      </table>
     </div>
-    <div class="section-title">Recent Prescription Updates (from Supabase)</div>
-    <div class="tbl-wrap">
+
+    <div class="section-title">Level 2 — Recent Prescription Updates</div>
+    <div class="tbl-wrap" style="margin-bottom:28px">
       <table><thead><tr><th>Rx#</th><th>Status</th><th>Prescribed</th><th>Dispensed At</th><th>Updated By</th></tr></thead>
       <tbody id="td-tbody"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody></table>
     </div>
-    <hr>
-    <div class="section-title">Time Dependency Levels — Reference</div>
+
+    <div class="section-title">Level 3 — Full Audit Log (PRESCRIPTION_AUDIT_LOG)</div>
+    <div class="alert alert-info" style="margin-bottom:14px">
+      Populated automatically by the <code>trg_prescription_audit</code> BEFORE UPDATE trigger. Every status or pharmacist change is recorded with old &amp; new values.
+    </div>
     <div class="tbl-wrap">
-      <table>
-        <thead><tr><th>Level</th><th>Tracks</th><th>Columns</th><th>In This DB</th></tr></thead>
-        <tbody>
-          <tr><td><strong>Level 1</strong></td><td>When row was created</td><td><code>created_at</code></td><td><span class="badge badge-green">Yes</span></td></tr>
-          <tr><td><strong>Level 2</strong></td><td>Most recent modification</td><td><code>updated_at, updated_by</code></td><td><span class="badge badge-green">Yes — main method</span></td></tr>
-          <tr><td><strong>Level 3</strong></td><td>Full history of every change</td><td>Separate LOG table</td><td><span class="badge badge-gray">Not implemented</span></td></tr>
-        </tbody>
-      </table>
+      <table><thead><tr><th>Log#</th><th>Rx#</th><th>Changed At</th><th>Changed By</th><th>Old Status</th><th>New Status</th><th>Old Pharmacist</th><th>New Pharmacist</th></tr></thead>
+      <tbody id="audit-tbody"><tr><td colspan="8" class="loading">Loading...</td></tr></tbody></table>
     </div>
   </div>
 
@@ -1029,6 +1035,7 @@ async function loadBilling() {
 // TIME DEPENDENCY
 // ══════════════════════════════════════════════════════════════
 async function loadTimeDep() {
+  // Level 2 — recent prescription updates
   const r = await sbFetch('prescription', {
     select: 'prescription_id, status, prescribed_date, dispensed_at, updated_at, updated_by',
     filters: ['dispensed_at=not.is.null'], order: 'dispensed_at.desc', limit: 10
@@ -1038,6 +1045,28 @@ async function loadTimeDep() {
      <td>${badge(row.status)}</td><td>${fmt(row.prescribed_date)}</td>
      <td>${fmtDT(row.dispensed_at)}</td><td>${row.updated_by||'—'}</td></tr>`
   ).join('') || '<tr><td colspan="5" style="color:var(--muted);text-align:center">No dispensed records yet</td></tr>';
+
+  // Level 3 — full audit log
+  const a = await sbFetch('prescription_audit_log', {
+    select: 'log_id, prescription_id, changed_at, changed_by, old_status, new_status, old_pharmacist_id, new_pharmacist_id',
+    order: 'log_id.desc', limit: 20
+  });
+  const auditEl = document.getElementById('audit-tbody');
+  if (!auditEl) return;
+  auditEl.innerHTML = (a.data||[]).length
+    ? (a.data||[]).map(row =>
+        `<tr>
+          <td><code>${row.log_id}</code></td>
+          <td><code>${rx_id(row.prescription_id)}</code></td>
+          <td>${fmtDT(row.changed_at)}</td>
+          <td>${row.changed_by||'—'}</td>
+          <td>${row.old_status ? badge(row.old_status) : '—'}</td>
+          <td>${row.new_status ? badge(row.new_status) : '—'}</td>
+          <td>${row.old_pharmacist_id||'—'}</td>
+          <td>${row.new_pharmacist_id||'—'}</td>
+        </tr>`
+      ).join('')
+    : '<tr><td colspan="8" style="color:var(--muted);text-align:center">No audit entries yet — trigger fires on UPDATE to PRESCRIPTION</td></tr>';
 }
 
 // ══════════════════════════════════════════════════════════════
