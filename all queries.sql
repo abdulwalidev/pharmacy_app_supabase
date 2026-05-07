@@ -5,41 +5,57 @@
 -- bahria university islamabad
 
 -- ============================================================
--- normalization — all tables satisfy third normal form (3nf)
+-- concepts applied
 -- ============================================================
--- 1nf: all column values are atomic (no multivalued/repeating groups).
---      medicines in a prescription are stored as individual rows in
---      Rx_Items, not as comma-separated values in one column.
 --
--- 2nf: no partial dependencies exist.
---      all tables with a single surrogate pk (serial) trivially satisfy
---      2nf. the composite-pk table Rx_Items(prescription_id, medicine_id)
---      has every non-key attribute dependent on the full composite key.
+-- normalization:
+--      tables are in 3NF — no partial or transitive dependencies
+--      medicines in a prescription stored as individual rows in
+--      Presc_Items, not as comma-separated values in one column
 --
--- 3nf: no transitive dependencies exist.
---      example: Doctor stores only doctor-specific attributes and
---      references Person(person_id) for shared attributes.
--- ============================================================
-
--- ============================================================
--- cardinality of relationships
--- ============================================================
---  relationship                     cardinality
---  -----------------------------    -----------
---  Person      →  Doctor            1 : 1
---  Person      →  Pharmacist        1 : 1
---  Person      →  Customer          1 : 1
---  Medicine    →  Otc_Med           1 : 1  (subtype)
---  Medicine    →  Rx_Med            1 : 1  (subtype)
---  Doctor      →  Prescription      1 : m
---  Customer    →  Prescription      1 : m
---  Pharmacist  →  Prescription      1 : m
---  Prescription × Medicine          m : n  (resolved by Rx_Items)
---  Supplier    →  Purchase_Order    1 : m
---  Medicine    →  Purchase_Order    1 : m
---  Medicine    →  Inventory         1 : 1
---  Prescription →  Invoice          1 : 1
---  Invoice     →  Payment           1 : m
+-- supertype / subtype:
+--      person → doctor, pharmacist, customer
+--      medicine → walk_in_med, presc_med
+--
+-- cardinality:
+--      1:1  person → doctor / pharmacist / customer
+--      1:1  medicine → walk_in_med / presc_med
+--      1:M  doctor, customer, pharmacist → prescription
+--      1:M  prescription, medicine → presc_items
+--      M:N  prescription ↔ medicine  (via presc_items)
+--      1:M  supplier, medicine → purchase_order
+--      1:1  medicine → inventory
+--      1:1  prescription → invoice
+--      1:M  invoice → payment
+--      1:M  prescription → audit_log
+--
+-- keys:
+--      surrogate keys (SERIAL) on all tables
+--      composite PK on presc_items
+--      shared PK pattern on subtypes
+--
+-- referential integrity:
+--      foreign keys enforced on all relationships
+--      nullable FKs where relationship is optional
+--
+-- bridge table:
+--      presc_items resolves M:N between prescription and medicine
+--
+-- constraints & defaults:
+--      NOT NULL on mandatory fields, NULL on optional
+--      NUMERIC(10,2) for money, DATE for dates, TIMESTAMP for events
+--      DEFAULT values on status, timestamps, and boolean flags
+--
+-- soft delete:
+--      is_active flag on person, medicine, supplier
+--
+-- row level security:
+--      RLS enabled on all tables with a base permissive policy
+--
+-- trigger & audit log:
+--      BEFORE UPDATE trigger on prescription
+--      logs changes to audit_log via PL/pgSQL function
+--
 -- ============================================================
 
 -- person (super)
@@ -90,15 +106,15 @@ CREATE TABLE Medicine (
     is_active    BOOLEAN       DEFAULT TRUE
 );
 
--- otc_med (over the counter subtype)
-CREATE TABLE Otc_Med (
+-- walk_in_med (over the counter subtype)
+CREATE TABLE Walk_In_Med (
     medicine_id     INT          PRIMARY KEY REFERENCES Medicine(medicine_id),
     shelf_category  VARCHAR(100) NOT NULL,
     age_restriction VARCHAR(50)  NULL
 );
 
--- rx_med (prescription medicine subtype)
-CREATE TABLE Rx_Med (
+-- presc_med (prescription medicine subtype)
+CREATE TABLE Presc_Med (
     medicine_id    INT          PRIMARY KEY REFERENCES Medicine(medicine_id),
     max_dose       VARCHAR(50)  NOT NULL,
     schedule_class VARCHAR(50)  NOT NULL,
@@ -120,8 +136,8 @@ CREATE TABLE Prescription (
     updated_by      VARCHAR(100)  NULL
 );
 
--- rx_items (bridge table)
-CREATE TABLE Rx_Items (
+-- presc_items (bridge table)
+CREATE TABLE Presc_Items (
     prescription_id INT          NOT NULL REFERENCES Prescription(prescription_id),
     medicine_id     INT          NOT NULL REFERENCES Medicine(medicine_id),
     quantity        INT          NOT NULL,
@@ -190,8 +206,8 @@ CREATE TABLE Payment (
     refunded_at    TIMESTAMP     NULL
 );
 
--- rx_audit_log (tracks all prescription changes)
-CREATE TABLE Rx_Audit_Log (
+-- audit_log (tracks all prescription changes)
+CREATE TABLE Audit_Log (
     log_id            SERIAL       PRIMARY KEY,
     prescription_id   INT          NOT NULL,
     changed_at        TIMESTAMP    DEFAULT NOW(),
@@ -208,37 +224,37 @@ CREATE TABLE Rx_Audit_Log (
 -- ============================================================
 -- row level security
 -- ============================================================
-ALTER TABLE Person        ENABLE ROW LEVEL SECURITY;
-ALTER TABLE Doctor        ENABLE ROW LEVEL SECURITY;
-ALTER TABLE Pharmacist    ENABLE ROW LEVEL SECURITY;
-ALTER TABLE Customer      ENABLE ROW LEVEL SECURITY;
-ALTER TABLE Medicine      ENABLE ROW LEVEL SECURITY;
-ALTER TABLE Otc_Med       ENABLE ROW LEVEL SECURITY;
-ALTER TABLE Rx_Med        ENABLE ROW LEVEL SECURITY;
-ALTER TABLE Prescription  ENABLE ROW LEVEL SECURITY;
-ALTER TABLE Rx_Items      ENABLE ROW LEVEL SECURITY;
-ALTER TABLE Supplier      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE Person         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE Doctor         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE Pharmacist     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE Customer       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE Medicine       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE Walk_In_Med    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE Presc_Med      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE Prescription   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE Presc_Items    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE Supplier       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE Purchase_Order ENABLE ROW LEVEL SECURITY;
-ALTER TABLE Inventory     ENABLE ROW LEVEL SECURITY;
-ALTER TABLE Invoice       ENABLE ROW LEVEL SECURITY;
-ALTER TABLE Payment       ENABLE ROW LEVEL SECURITY;
-ALTER TABLE Rx_Audit_Log  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE Inventory      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE Invoice        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE Payment        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE Audit_Log      ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "public_all" ON Person         FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "public_all" ON Doctor         FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "public_all" ON Pharmacist     FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "public_all" ON Customer       FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "public_all" ON Medicine       FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "public_all" ON Otc_Med        FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "public_all" ON Rx_Med         FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "public_all" ON Walk_In_Med    FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "public_all" ON Presc_Med      FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "public_all" ON Prescription   FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "public_all" ON Rx_Items       FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "public_all" ON Presc_Items    FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "public_all" ON Supplier       FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "public_all" ON Purchase_Order FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "public_all" ON Inventory      FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "public_all" ON Invoice        FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "public_all" ON Payment        FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "public_all" ON Rx_Audit_Log   FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "public_all" ON Audit_Log      FOR ALL USING (true) WITH CHECK (true);
 
 -- ============================================================
 -- trigger: audit log on prescription update
@@ -246,7 +262,7 @@ CREATE POLICY "public_all" ON Rx_Audit_Log   FOR ALL USING (true) WITH CHECK (tr
 CREATE OR REPLACE FUNCTION log_prescription_changes()
 RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO Rx_Audit_Log (
+    INSERT INTO Audit_Log (
         prescription_id,
         changed_at,
         changed_by,
